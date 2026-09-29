@@ -1,0 +1,118 @@
+  <section class="page" id="page-about" hidden>
+    <div class="wrap page-wrap">
+      <aside class="doc-nav">
+        <div class="doc-nav-h">About Openmesh</div>
+        <a href="#docs-overview">Overview</a>
+        <a href="#docs-story">Why compute needs a market</a>
+        <a href="#docs-principles">Principles</a>
+        <a href="#docs-instruments">Instruments</a>
+        <a href="#docs-contracts">Contract specification</a>
+        <a href="#docs-margin">Margin &amp; risk</a>
+        <a href="#docs-index">Reference index</a>
+        <a href="#docs-capacity">Capacity tokens</a>
+        <a href="#docs-settlement">Settlement</a>
+        <a href="#docs-architecture">Architecture</a>
+        <a href="#docs-token">Token</a>
+        <a href="#docs-api">API &amp; SDK</a>
+        <a href="#docs-launch">Launch</a>
+      </aside>
+      <article class="doc">
+        <p class="eyebrow">About · pre-launch</p>
+        <h1 id="docs-overview">Compute should have a market.</h1>
+        <p class="doc-lede">Openmesh is a decentralized cloud network and the exchange being built on top of it — the first futures market for compute, on Solana. Real infrastructure capacity — GPUs, vCPU, RAM, storage and bandwidth — is verified, tokenized, priced on an order book, and delivered to real workloads.</p>
+        <div class="doc-cards">
+          <div><b>Instruments</b><span>11 at launch across cloud compute and physical hardware</span></div>
+          <div><b>Delivery</b><span>Quarterly contracts · cash or physical settlement</span></div>
+          <div><b>Collateral</b><span>USDC, cross-margin, on-chain vault</span></div>
+          <div><b>Chain</b><span>Solana · ~400 ms blocks · sub-cent fees</span></div>
+        </div>
+
+        <h2 id="docs-story">Why compute needs a market</h2>
+        <p>Today the physical compute market and the financial market operate separately. Data centres, GPU operators and infrastructure providers own future capacity but have limited ways to finance, price or sell it in advance. Traders want exposure to the growth of compute and have no transparent market behind it. AI companies need future capacity and depend on private contracts and fragmented providers.</p>
+        <p>Openmesh connects these markets. Compute supply is financed, priced, traded and delivered on one exchange: the Openmesh Exchange for compute and GPU futures, the Infrastructure Capacity Market for verified future supply, and the Compute Settlement Layer that turns traded capacity into real usage.</p>
+
+        <h2 id="docs-principles">Principles</h2>
+        <ul class="doc-list">
+          <li><b>Verified supply only.</b> No synthetic compute. Every physically-settled contract is backed by attested infrastructure and an operator bond.</li>
+          <li><b>One collateral.</b> USDC for margin and settlement keeps risk simple and transparent.</li>
+          <li><b>Open price.</b> A public forward curve for every instrument and quarter, the way oil, power and metals are priced.</li>
+          <li><b>Delivery is real.</b> A contract for Q1 compute resolves into Q1 compute on the Openmesh network.</li>
+        </ul>
+
+        <h2 id="docs-instruments">Instruments</h2>
+        <p>Each instrument is a standardized unit of compute with a reference index. Instruments are grouped into two categories.</p>
+        <div class="t-scroll"><table class="doc-table">
+          <thead><tr><th>Tag</th><th>Instrument</th><th>Category</th><th>Unit</th><th>Type</th></tr></thead>
+          <tbody>
+            <tr><td><code>GPU</code></td><td>GPU · Accelerator</td><td>Cloud compute</td><td>USD per GPU-hour</td><td>Futures + perp</td></tr>
+            <tr><td><code>VCPU</code></td><td>CPU · Compute</td><td>Cloud compute</td><td>USD per vCPU-month</td><td>Futures + perp</td></tr>
+            <tr><td><code>CLOU</code></td><td>RAM</td><td>Cloud compute</td><td>USD per GB-month</td><td>Futures</td></tr>
+            <tr><td><code>BLK</code></td><td>Storage · SSD</td><td>Cloud compute</td><td>USD per TB-month</td><td>Futures</td></tr>
+            <tr><td><code>BW</code></td><td>Network · Egress</td><td>Cloud compute</td><td>USD per TB</td><td>Futures</td></tr>
+            <tr><td><code>RAM</code></td><td>RAM · DRAM spot</td><td>Physical hardware</td><td>USD per GB</td><td>Futures</td></tr>
+            <tr><td><code>HWSS</code></td><td>SSD</td><td>Physical hardware</td><td>USD per GB</td><td>Futures</td></tr>
+            <tr><td><code>REF</code></td><td>CPU · GPU · HDD · Networking</td><td>Physical hardware</td><td>Index</td><td>Reference only</td></tr>
+          </tbody>
+        </table></div>
+        <p><code>REF</code> instruments are long-run reference indexes (USD per physical core, per FP32 TFLOPS at launch MSRP, per TB, per Gbps). They publish continuously and are not tradable at launch.</p>
+
+        <h2 id="docs-contracts">Contract specification</h2>
+        <ul class="doc-list">
+          <li><b>Delivery quarters.</b> Q4 2026, Q1 2027, Q2 2027, Q3 2027 at launch; a new quarter lists as the front one expires.</li>
+          <li><b>Contract size.</b> 1 unit of the instrument (1 GPU-hour, 1 vCPU-month, 1 GB-month, 1 TB-month, 1 TB egress). Minimum order 100 units.</li>
+          <li><b>Tick size.</b> 0.001 for prices under 2; 0.01 under 20; 0.05 above.</li>
+          <li><b>Quote currency.</b> USDC.</li>
+          <li><b>Expiry.</b> First day of the delivery quarter, 00:00 UTC. Trading halts 1 hour before expiry.</li>
+          <li><b>Settlement.</b> Cash at the final index, or physical for holders who elect delivery before the last trading day.</li>
+          <li><b>Perp-style contracts.</b> GPU and vCPU also list a non-expiring contract with 8-hourly funding against the reference index.</li>
+        </ul>
+
+        <h2 id="docs-margin">Margin &amp; risk</h2>
+        <ul class="doc-list">
+          <li><b>Cross-margin.</b> One USDC collateral account per wallet across every instrument and quarter.</li>
+          <li><b>Initial / maintenance margin.</b> 5% / 2.5% for GPU and vCPU; 10% / 5% for RAM, storage and bandwidth. Leverage up to 20× on GPU.</li>
+          <li><b>Liquidation.</b> Keeper-driven partial liquidation at maintenance margin, with a 1% penalty split between the liquidator and the insurance fund.</li>
+          <li><b>Insurance fund.</b> Seeded by the protocol, grown from fees and liquidation penalties; backstopped by the LP vault and, last, by the native token.</li>
+          <li><b>Fees.</b> 0.02% maker / 0.05% taker, with tiered discounts for native-token stakers.</li>
+        </ul>
+
+        <h2 id="docs-index">Reference index</h2>
+        <p>Every instrument has a reference index published on-chain. It is computed from observed transaction prices on the Openmesh network, blended with public cloud list prices and spot hardware markets, outlier-filtered with a median-of-sources rule, and published every slot batch. The index fixes the final settlement price at expiry and drives perp funding.</p>
+
+        <h2 id="docs-capacity">Capacity tokens</h2>
+        <p>A capacity token is an SPL (Token-2022) mint representing a claim on a defined amount of compute in a defined delivery quarter — for example 512 GPU-hours of GPU in Q1 2027. Tokens carry metadata for site, hardware specification, attestation hash and delivery window.</p>
+        <ul class="doc-list">
+          <li><b>Verification.</b> Operators attest inventory, power and network through the Openmesh node agent. Only verified capacity can be minted.</li>
+          <li><b>Bond.</b> Operators stake the native token as a USD-value bond against non-delivery; the bond is slashed if delivery fails.</li>
+          <li><b>Financing.</b> Operators sell capacity tokens forward on the order book for USDC before the window opens.</li>
+          <li><b>Redemption.</b> Tokens are burned when the workload is delivered and metered.</li>
+        </ul>
+
+        <h2 id="docs-settlement">Settlement</h2>
+        <ol class="doc-list">
+          <li><b>Trading.</b> Position held on the order book, cross-margined in USDC.</li>
+          <li><b>Expiry.</b> The delivery-quarter index is fixed. Cash-settled positions close.</li>
+          <li><b>Settle.</b> Physically-settled holders receive a redemption right on specific infrastructure.</li>
+          <li><b>Deliver.</b> Workloads run on the committed capacity through the Openmesh network; usage is metered and reconciled on-chain.</li>
+        </ol>
+
+        <h2 id="docs-architecture">Architecture</h2>
+        <p>Seven layers. Physical supply, verification and oracles, and capacity tokens form the physical stack. Settlement and the on-chain exchange programs form the financial stack. Off-chain services and applications provide access. Matching runs off-chain with on-chain custody, margin and settlement — the pattern that scales on Solana today.</p>
+        <p><a href="#architecture">See the layer and token diagrams →</a></p>
+
+        <h2 id="docs-token">Token</h2>
+        <p>The native token is the security and governance asset. It is never used as margin or a settlement currency. It is used for operator and keeper bonds, governance over listings and risk parameters, fee-tier discounts, and as the final backstop behind the insurance fund. USDC trading fees flow to the treasury for buybacks and insurance.</p>
+
+        <h2 id="docs-api">API &amp; SDK</h2>
+        <p>A WebSocket market-data feed, a REST trading API and a TypeScript SDK ship with launch. Reference pricing for every instrument is available now in the app.</p>
+        <pre class="doc-code">GET  /v1/instruments
+GET  /v1/markets/&#123;instrument&#125;/&#123;quarter&#125;/book
+GET  /v1/index/&#123;instrument&#125;
+WS   wss://…/v1/stream?channels=book,trades,index</pre>
+
+        <h2 id="docs-launch">Launch</h2>
+        <p>Openmesh Exchange is coming to Solana soon. Join the waitlist for the launch date, whitelist access and the opening market list. Infrastructure owners can apply to list capacity at launch. Partners and investors: <a href="mailto:hello@openmesh.network">hello@openmesh.network</a>.</p>
+        <div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:8px"><a class="btn btn-light" href="#updates">Join waitlist</a><a class="btn btn-app" href="https://openmesh.network/app" target="_blank" rel="noreferrer">Exchange App ↗</a></div>
+      </article>
+    </div>
+  </section>

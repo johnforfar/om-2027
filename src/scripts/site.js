@@ -3,21 +3,25 @@
   var fmt = function (n, d) { return n.toLocaleString("en-US", { minimumFractionDigits: d, maximumFractionDigits: d }); };
   var rnd = function (a, b) { return a + Math.random() * (b - a); };
 
+  var QS = ["Q4 2026", "Q1 2027", "Q2 2027", "Q3 2027"], QF = [1.03, 1, 0.965, 0.93], qi = 1;
   var MK = [
-    { id: "H100-Q1", n: "H100 80GB", cls: "gpu", d: "Q1 2027", p: 2.104, c: 1.42, oi: "41.2M GPU-hr", vol: "$6.84M", f: 0.0041, unit: "GPU-hr" },
-    { id: "H100-Q2", n: "H100 80GB", cls: "gpu", d: "Q2 2027", p: 1.962, c: 0.88, oi: "22.7M GPU-hr", vol: "$3.10M", f: 0.0028, unit: "GPU-hr" },
-    { id: "H100-Q3", n: "H100 80GB", cls: "gpu", d: "Q3 2027", p: 1.811, c: -0.34, oi: "12.4M GPU-hr", vol: "$1.42M", f: -0.0012, unit: "GPU-hr" },
-    { id: "H200-Q1", n: "H200 141GB", cls: "gpu", d: "Q1 2027", p: 2.982, c: 0.61, oi: "9.8M GPU-hr", vol: "$2.21M", f: 0.0019, unit: "GPU-hr" },
-    { id: "H200-Q2", n: "H200 141GB", cls: "gpu", d: "Q2 2027", p: 2.861, c: 0.92, oi: "14.1M GPU-hr", vol: "$2.96M", f: 0.0033, unit: "GPU-hr" },
-    { id: "B200-Q2", n: "B200", cls: "gpu", d: "Q2 2027", p: 4.212, c: 2.24, oi: "6.3M GPU-hr", vol: "$2.74M", f: 0.0088, unit: "GPU-hr" },
-    { id: "B200-Q3", n: "B200", cls: "gpu", d: "Q3 2027", p: 3.941, c: 1.71, oi: "3.9M GPU-hr", vol: "$1.18M", f: 0.0052, unit: "GPU-hr" },
-    { id: "MI300-Q2", n: "MI300X", cls: "gpu", d: "Q2 2027", p: 2.047, c: 0.71, oi: "4.4M GPU-hr", vol: "$0.91M", f: 0.0015, unit: "GPU-hr" },
-    { id: "L40S-Q1", n: "L40S", cls: "gpu", d: "Q1 2027", p: 0.942, c: -0.58, oi: "7.7M GPU-hr", vol: "$0.62M", f: -0.0021, unit: "GPU-hr" },
-    { id: "A100-Q4", n: "A100 80GB", cls: "gpu", d: "Q4 2026", p: 1.318, c: -1.12, oi: "16.2M GPU-hr", vol: "$1.85M", f: -0.0034, unit: "GPU-hr" },
-    { id: "BM96-Q1", n: "Bare metal 96c", cls: "metal", d: "Q1 2027", p: 1240, c: 0.32, oi: "1,820 node-mo", vol: "$0.74M", f: 0.0009, unit: "node-mo" },
-    { id: "BM96-Q2", n: "Bare metal 96c", cls: "metal", d: "Q2 2027", p: 1198, c: -0.11, oi: "940 node-mo", vol: "$0.31M", f: -0.0004, unit: "node-mo" }
+    { id: "GPU",   cat: "cloud", tag: "GPU",  n: "GPU",        sub: "Accelerator · per GPU · hour",        p: 0.989, dec: 3, unit: "GPU-hr",  c: 1.42,  oi: "41.2M GPU-hr", vol: "$6.84M", f: 0.0041 },
+    { id: "VCPU",  cat: "cloud", tag: "VCPU", n: "CPU",        sub: "Compute · per vCPU · month",          p: 42.05, dec: 2, unit: "vCPU-mo", c: 0.82,  oi: "2.4M vCPU-mo", vol: "$3.10M", f: 0.0018 },
+    { id: "RAM",   cat: "cloud", tag: "CLOU", n: "RAM",        sub: "per GB · month",                      p: 3.04,  dec: 2, unit: "GB-mo",   c: -0.34, oi: "18.7M GB-mo",  vol: "$1.42M", f: -0.0012 },
+    { id: "BLK",   cat: "cloud", tag: "BLK",  n: "Storage",    sub: "SSD · per TB · month",                p: 50.10, dec: 2, unit: "TB-mo",   c: 0.61,  oi: "412K TB-mo",   vol: "$2.21M", f: 0.0019 },
+    { id: "BW",    cat: "cloud", tag: "BW",   n: "Network",    sub: "Egress · per TB",                     p: 5.00,  dec: 2, unit: "TB",      c: 0.12,  oi: "1.9M TB",      vol: "$0.96M", f: 0.0006 },
+    { id: "HWCPU", cat: "hw",    tag: "REF",  n: "CPU",        sub: "USD per physical core",               ref: true, chg: -82.3, p: 17.7, dec: 2, unit: "index", c: -0.21, oi: "—", vol: "$0.41M", f: 0 },
+    { id: "HWGPU", cat: "hw",    tag: "REF",  n: "GPU",        sub: "USD per FP32 TFLOPS at launch MSRP",  ref: true, chg: -98.9, p: 1.10, dec: 2, unit: "index", c: -0.08, oi: "—", vol: "$0.62M", f: 0 },
+    { id: "HWRAM", cat: "hw",    tag: "RAM",  n: "RAM",        sub: "Memory · DRAM spot · per GB",         p: 9.13,  dec: 2, unit: "GB",      c: 2.24,  oi: "6.3M GB",      vol: "$2.74M", f: 0.0088 },
+    { id: "HWSSD", cat: "hw",    tag: "HWSS", n: "SSD",        sub: "per GB",                              p: 0.090, dec: 3, unit: "GB",      c: -0.58, oi: "44M GB",       vol: "$0.91M", f: -0.0021 },
+    { id: "HWHDD", cat: "hw",    tag: "REF",  n: "HDD",        sub: "USD per TB",                          ref: true, chg: -97.9, p: 2.10, dec: 2, unit: "index", c: -0.05, oi: "—", vol: "$0.18M", f: 0 },
+    { id: "HWNET", cat: "hw",    tag: "REF",  n: "Networking", sub: "USD per Gbps of port capacity",       ref: true, chg: -99.3, p: 0.70, dec: 2, unit: "index", c: -0.02, oi: "—", vol: "$0.12M", f: 0 }
   ];
-  MK.forEach(function (m) { m.dec = m.p > 100 ? 0 : 3; m.base = m.p; m.spark = []; var v = m.p * rnd(0.94, 1.06); for (var i = 0; i < 28; i++) { v += v * rnd(-0.015, 0.016); m.spark.push(v); } m.spark[27] = m.p; });
+  var CATS = [["cloud", "Cloud compute"], ["hw", "Physical hardware"]];
+  MK.forEach(function (m) { m.d = QS[qi]; m.base = m.p; m.spark = []; var v = m.p * rnd(0.94, 1.06); for (var i = 0; i < 28; i++) { v += v * rnd(-0.015, 0.016); m.spark.push(v); } m.spark[27] = m.p; });
+  function label(m) { return m.n + " · " + m.tag; }
+  function pDisp(m) { return m.ref ? (m.chg >= 0 ? "+" : "−") + Math.abs(m.chg).toFixed(1) + "%" : "$" + fmt(m.p, m.dec); }
+  function setQuarter(i) { var old = qi; qi = i; MK.forEach(function (m) { if (m.ref) { m.d = QS[qi]; return; } m.p = m.p / QF[old] * QF[qi]; m.base = m.base / QF[old] * QF[qi]; m.d = QS[qi]; }); }
 
   var LAND_B64 = "AAgAAA8AAAAVAAAAABt////AACE/x//+AAAoH/L///wALh/4H///8AA0F/4H////wAA6B//Af////gAAQAAT+Af////4AEYAAEoA//////AATAAAA4Af//f//8AAUgAAAGAAAP8///wAAFgAAAAIAAAD+f//gABeAAAABAAAAAwD+XgAAGQAAAAAgAAAAAAAAAAAAGkAAAAAEAAAAAAAAAAAAABvAAAAAAAAAAAAAAAAAAAAdAAAAAAAAAAAAAAAAAAAAAB6AAAAAAAAAAAAAAAAAAAAAAB/AAAAAAAAAAAAAAAAAAAAAACEAAAAAAAAAAAAAAAAAAAAAAAAigAAAAAAMAAAAAAAAAAAAAAAAACPAAAAAAAgAAAAAAAAAAAAAAAAAJQAAAAAAAwAAAAAAAAAAAAAAAAAAJkAAAAAAA4AAAAAAAAAAAAAAAAAAACdAAAAAAADgAAAAAAAAAAAAAAAAAAAogAAAAAAAOAAAAAAAAAAAAAAAAAAAACnAAAAAAAAcAAAAAAAAAAAAAAAAABgAKsAAAAAAAAcAAAAAAAAAAAAAAAAAAYAALAAAAAAAAAPgAAAAAAAAAAAAAAAAQAYALQAAAAAAAAHgAAAAAAAAAAAAAAAADAAgAC4AAAAAAAAA/AAAAAAAAAAAAAAAAAAAAQAvAAAAAAAAAD/AAAAAAAAAAAAAAAAACAAYADAAAAAAAAAAH/AAAAAAAAAAAAAAAAAHwAAAMMAAAAAAAAAP+AAAAAAAAAAAAAAAAAP4AEAAMcAAAAAAAAAD/wAAAAAA4AAAAAAABwC/gAAAMoAAAAAAAAAB/8AAAAAAfgAAAAAAAPg/+AAAADOAAAAAAAAAAP/wAAAAAB/AAAAAAAAf//+AAAA0QAAAAAAAAAB//AAAAAAP+AAAAAAAB///8AAAADUAAAAAAAAAAD/+AAAAAAf+AAAAAAAB///8AAAANcAAAAAAAAAAH/8AAAAAAf+AAAAAAAB///+AAAA2gAAAAAAAAAAP/8AAAAAA//AgAAAAAA///+AAAAA3AAAAAAAAAAAH//AAAAAAf/wYAAAAAAf///AAAAA3wAAAAAAAAAAD//8AAAAAP/4OAAAAAAD///wAgAA4QAAAAAAAAAAB//+AAAAAH/8DgAAAAAAP//4AAAAAOMAAAAAAAAAAAf//wAAAAB//wcAAAAAAAP//AAAAADlAAAAAAAAAAAH///AAAAAP//DwAAAAAAA/+4AABAA5wAAAAAAAAAAD///4AAAAB//+OAAAAAAAB/zgAAAAOgAAAAAAAAAAB///+AAAAAP//wQAAAAAAAF4YAAAADqAAAAAAAAAAAf///wAAAAB//+AAAAAAAAADxAAAAAAOsAAAAAAAAAAB////gAAAAD//8AAAAAAAAAICAAAAAA7AAAAAAAAAAAH////AAAAAH//wAAAAAAAAEAAQAAAADtAAAAAAAAAAAf///+AAAAAf//AAAAAAAAfEAZAAAAAO4AAAAAAAAAAD////8AAAAB//+AAAAAAAeAAB8AAAAA7wAAAAAAAAAAP////wAAAAD//4AAAAAABAAAHwAAAADvAAAAAAAAAAA////8AAAAAf//wAAAAAAcAIB/AAAAAPAAAAAAAAAAAD///+AAAAAD///gAAAAABx9gFwAAAAA8AAAAAAAAAAAP///gAAAAAP///AAAAAAGHxAgAAAAADwAAAAAAAAAAAf//4AAAAAA///+AAAAAA4fOQAAAAAAPAAAAAAAAAAAA///AAAAAAB///8AAAAADg+AAAAAAAA8AAAAAAAAAAAD//8AAAAAAP///4AAAAAWAwAAAAAAADvAAAAAAAAAAAP//gAAAAwH////wAAAAEwDAAAAAAAAO4AAAAAAAAAAA//gAAAAP/////+AAAIAEAIQAAAAAAA7gAAAAAAAAAAX/8AAAAD//////8AAAgAgADgAAAAAADtAAAAAAAAAAEG/AAAAAP//////wAAUAEACQAAAAAAAOwAAAAAAAAAAgeAAAAAD//////nAADAADgCAAAAAAAA6gAAAAAAAAAOAQAAAAA//////4AAA4AF8AAAAAAAAADpAAAAAAAAAH4AAAAAAD/////+8AAHAA/gAAAAAAAAAOcAAAAAAAAA/AAAAAAAf/////n4AB4AP4CAAAAAAADmAAAAAAAAH+AAAAAAAH/////z/AA/Af4AgAAAAAAA5AAAAAAAAP3AHwAAAAD/////z/wA/gP5AgAAAAAAAOIAAQAAAAHwwMAAAAAB/////z/4Af4P8gAAAAAAAADfAAQAAAAD4AEAAAAAB/////z/8Bf4/8AAAAAAAADdAAAAAAAHwAgAAAAAB/////P/4H////yAAAAAAADaAAAAAABPwAAAAAAAD////8/yA/////IAAAAAAADYAAAAAAA/wBAAAAAAH////7/D//////AAAAAAANUAAAAAAX+AIAAAAAAf///8/z//////wAAAAAAA0gAAAAAD/4BAAAAAAB/////5//////8AAAAAAADPAAAAAAX//4AAAAAAP//f////////+AAAAAAAzAAAAAAP//8AAAAAAH/+cD///////+CAAAAAAMgAAAAAH///AAAAAAD/wAD///////4qAAAAAMUAAAAA////AAAAAAH/AAv///////CeAAAAAMEAAAAB////AAAAAAR8AK///////4wwAAAAAL0AAAAD///8AAAAADwGB/8f////+MAAAAAAuQAAAAf///gAAAAA8AE//P/////UCAAAAAC1AAAAD///+AAAAAPgL33j//////AAAAAAsQAAAB////wAAAAPwjwHP/////+GAAAAAK0AAAAf///4AAAAA9vwef//////EAAAAKgAAAA///++AAAAH//Tx//////wAAAApAAAAD////AAAAB//++//////4AAAACfAAAAf///4wAAB//////////6AAAAmgAAAP///wgAAAP/////////oAAAAJUAAAf//7/wAAJv/////////BAAAJAIAA/////AAA8/////////AwAAiwAAH//9/gAAKA///////8AwAACGAQB//8PwAABDH//////8BgAAgQDA//4HwAADBP//////4GAAAHwCg//4HQAAALP//////gYAAHYHz//wMAgAJ7///////MAAcQ///+HAYAA9///////+AABrI///wMOAAG///////+AAZU///+cODgOz//////gAYAf//88+AAAAAAAAAABaD/8vOPgAAAAAAAAAAFQPzcrH8APAv///sABO/////////////ABIAB64fwAAP/yAAEIAMAH4ABB4AAAAPAAVj+AAB4QAADYAQv8EACAAADAAL/hgBAAAKgA/4QCAAAAjAG4AAAAAHQCYAAAAFwAAAAARAAAAAAoAAA==";
   var LAND = (function () { var bin = atob(LAND_B64), pts = [], i = 0, row = 0; while (i < bin.length) { var n = (bin.charCodeAt(i) << 8) | bin.charCodeAt(i + 1); i += 2; var lat = -88 + row * 1.5, bytes = Math.ceil(n / 8); for (var j = 0; j < n; j++) { var byte = bin.charCodeAt(i + (j >> 3)), bit = (byte >> (7 - (j & 7))) & 1; if (bit) pts.push([lat, -180 + 360 * (j + 0.5) / n]); } i += bytes; row++; } return pts; })();
@@ -88,7 +92,7 @@
       priceTag.innerHTML = "<b>" + (series[mi] * scale).toFixed(3) + "</b><span>" + (mi === N - 1 ? "now" : "-" + (N - 1 - mi) * 4 + "m") + "</span>";
     } else {
       priceTag.className = "hero-price" + (ex > W - 110 ? " edge" : ""); priceTag.style.left = ex + "px"; priceTag.style.top = ey + "px";
-      priceTag.innerHTML = "<b>" + fmt(MK[0].p, 3) + "</b><span>H100 · Q1 27</span>";
+      priceTag.innerHTML = "<b>" + fmt(MK[0].p, 3) + "</b><span>GPU · " + QS[qi].replace("20", "") + "</span>";
     }
   }
   drawHero(); window.addEventListener("resize", drawHero);
@@ -111,29 +115,37 @@
   function tickHTML() {
     var h = "";
     for (var pass = 0; pass < 2; pass++) MK.forEach(function (m, i) {
-      h += '<div class="tick"><b>' + m.n + '</b><span>' + m.d + '</span><b class="num tp" data-i="' + i + '">' + fmt(m.p, m.dec) + '</b><span class="' + (m.c >= 0 ? 'up' : 'down') + ' num tc" data-i="' + i + '">' + (m.c >= 0 ? '+' : '−') + Math.abs(m.c).toFixed(2) + '%</span></div>';
+      h += '<div class="tick"><span class="ttag">' + m.tag + '</span><b>' + m.n + '</b><span>' + (m.ref ? 'index' : m.unit) + '</span><b class="num tp" data-i="' + i + '">' + pDisp(m) + '</b><span class="' + (m.c >= 0 ? 'up' : 'down') + ' num tc" data-i="' + i + '">' + (m.c >= 0 ? '+' : '−') + Math.abs(m.c).toFixed(2) + '%</span></div>';
     });
     return h;
   }
   tt.innerHTML = tickHTML();
   function tickUpdate() {
-    tt.querySelectorAll(".tp").forEach(function (el) { var m = MK[+el.dataset.i], nv = fmt(m.p, m.dec); if (el.textContent !== nv) { el.classList.remove("flash-up", "flash-down"); el.classList.add(m.p >= m.prev ? "flash-up" : "flash-down"); el.textContent = nv; setTimeout(function () { el.classList.remove("flash-up", "flash-down"); }, 600); } });
+    tt.querySelectorAll(".tp").forEach(function (el) { var m = MK[+el.dataset.i], nv = pDisp(m); if (el.textContent !== nv) { el.classList.remove("flash-up", "flash-down"); el.classList.add(m.p >= m.prev ? "flash-up" : "flash-down"); el.textContent = nv; setTimeout(function () { el.classList.remove("flash-up", "flash-down"); }, 600); } });
     tt.querySelectorAll(".tc").forEach(function (el) { var m = MK[+el.dataset.i]; el.textContent = (m.c >= 0 ? '+' : '−') + Math.abs(m.c).toFixed(2) + '%'; el.className = "num tc " + (m.c >= 0 ? "up" : "down"); });
   }
 
   var cur = MK[0];
   var mktList = document.getElementById("mktList");
   function renderMkts() {
-    mktList.innerHTML = MK.map(function (m) {
-      return '<div class="mkt' + (m === cur ? ' on' : '') + '" data-id="' + m.id + '"><span class="n">' + m.n + '</span><span class="p num">' + fmt(m.p, m.dec) + '</span><span class="d">' + m.d + '</span><span class="c num ' + (m.c >= 0 ? 'up' : 'down') + '">' + (m.c >= 0 ? '+' : '−') + Math.abs(m.c).toFixed(2) + '%</span></div>';
-    }).join("");
+    var live = MK.length, h = '<div class="mk-head">Switch instrument · ' + live + ' of ' + live + ' live</div>';
+    CATS.forEach(function (c) {
+      h += '<div class="mk-cat"><span>' + c[1] + '</span><a href="#markets">view all →</a></div>';
+      MK.filter(function (m) { return m.cat === c[0]; }).forEach(function (m) {
+        h += '<div class="mkt' + (m === cur ? ' on' : '') + '" data-id="' + m.id + '"><span class="tag">' + m.tag + '</span><span class="nm"><b>' + m.n + '</b><small>' + m.sub + '</small></span><span class="pr num' + (m.ref ? (m.chg >= 0 ? ' up' : ' up') : '') + '">' + pDisp(m) + (m === cur ? ' <i class="chk">✓</i>' : '') + '</span></div>';
+      });
+    });
+    mktList.innerHTML = h;
+    var sel = document.getElementById("instSel"); if (sel && sel.options.length !== MK.length) { sel.innerHTML = MK.map(function (m) { return '<option value="' + m.id + '">' + m.n + ' · ' + m.tag + '</option>'; }).join(""); }
+    if (sel) sel.value = cur.id;
   }
-  renderMkts();
   mktList.addEventListener("click", function (e) {
     var el = e.target.closest(".mkt"); if (!el) return;
     cur = MK.filter(function (m) { return m.id === el.dataset.id; })[0];
     buildCandles(); renderMkts(); renderTop(); renderBook(); renderTicket();
   });
+  var instSel = document.getElementById("instSel"); if (instSel) instSel.addEventListener("change", function () { selectMarket(this.value, false); });
+  document.getElementById("dlvTabs").addEventListener("click", function (e) { if (e.target.tagName !== "BUTTON") return; [].forEach.call(this.children, function (b) { b.classList.remove("on"); }); e.target.classList.add("on"); setQuarter(+e.target.dataset.q); buildCandles(); renderMkts(); renderTop(); renderBook(); renderTicket(); renderBoard(); });
 
   var side = "long", lev = 5, otype = "market";
   document.getElementById("btnLong").onclick = function () { side = "long"; renderTicket(); };
@@ -148,7 +160,7 @@
     document.getElementById("btnShort").classList.toggle("on", side === "short");
     var go = document.getElementById("goBtn");
     go.className = "go " + side;
-    go.textContent = (side === "long" ? "Long " : "Short ") + cur.n + " · " + cur.d.replace("20", "");
+    go.textContent = (side === "long" ? "Long " : "Short ") + cur.n + (cur.tag !== cur.n.toUpperCase() ? " " + cur.tag : "") + " · " + cur.d.replace("20", "");
     document.getElementById("sizeUnit").textContent = cur.unit; document.getElementById("priceUnit").textContent = "USD";
     var entry = otype === "market" ? cur.p * (side === "long" ? 1.001 : 0.999) : (num(inPrice.value) || cur.p);
     var size = num(inSize.value), notional = size * entry, margin = notional / lev;
@@ -161,19 +173,21 @@
   var toast = document.getElementById("toast"), toastT;
   function showToast(html, ms) { toast.innerHTML = html; toast.classList.add("on"); clearTimeout(toastT); toastT = setTimeout(function () { toast.classList.remove("on"); }, ms || 3200); }
   document.getElementById("goBtn").addEventListener("click", function () {
-    if (!wallet) { openWallet(); return; }
-    showToast("<b>Order sent.</b> " + (side === "long" ? "Long " : "Short ") + fmt(num(inSize.value), 0) + " " + cur.unit + " " + cur.n + " " + cur.d + " @ " + fmt(num(document.getElementById("kEntry").textContent), cur.dec) + " · " + lev + "× · signing with " + wallet.name);
+    showToast("<b>Trading opens at launch.</b> Join the waitlist for whitelist access — reference pricing is live in the app.", 4200);
+    document.getElementById("updates").scrollIntoView({ behavior: "smooth" });
   });
   function renderTop() {
     document.getElementById("tSym").textContent = cur.n;
-    document.getElementById("tPeriod").textContent = cur.d;
+    document.getElementById("tTag").textContent = cur.tag;
+    document.getElementById("tPeriod").textContent = cur.ref ? "Reference index" : cur.sub;
+    document.getElementById("tUnit").textContent = cur.ref ? "index" : "USD / " + cur.unit;
     var tm = document.getElementById("tMark"); if (typeof lastMark !== "undefined" && cur.p !== lastMark) { tm.classList.remove("flash-up", "flash-down"); void tm.offsetWidth; tm.classList.add(cur.p > lastMark ? "flash-up" : "flash-down"); setTimeout(function () { tm.classList.remove("flash-up", "flash-down"); }, 500); } lastMark = cur.p; tm.textContent = fmt(cur.p, cur.dec);
     document.getElementById("tIndex").textContent = fmt(cur.p * 0.9986, cur.dec);
     var chg = document.getElementById("tChg");
     chg.textContent = (cur.c >= 0 ? "+" : "−") + Math.abs(cur.c).toFixed(2) + "%"; chg.className = "v num " + (cur.c >= 0 ? "up" : "down");
-    document.getElementById("hsPrice").innerHTML = fmt(MK[0].p, 3) + '<span class="u">USD / GPU-hr</span>';
+    document.getElementById("hsPrice").innerHTML = fmt(MK[0].p, 3) + '<span class="u">USD / GPU-hr · ' + MK[0].d.replace("20", "") + '</span>';
     document.getElementById("pMark").textContent = fmt(MK[0].p, 3);
-    var pnl = (MK[0].p - 2.061) * 40000; var pp = (MK[0].p / 2.061 - 1) * 500;
+    var pnl = (MK[0].p - 0.962) * 40000; var pp = (MK[0].p / 0.962 - 1) * 500;
     var pe = document.getElementById("pPnl"); pe.textContent = (pnl >= 0 ? "+" : "−") + "$" + fmt(Math.abs(pnl), 0) + " (" + (pp >= 0 ? "+" : "−") + Math.abs(pp).toFixed(1) + "%)"; pe.className = "num " + (pnl >= 0 ? "up" : "down");
     document.getElementById("tokVal").textContent = "$" + fmt(MK[0].p * 512, 0);
   }
@@ -236,7 +250,7 @@
   });
 
   function renderBook() {
-    var asks = "", bids = "", step = cur.dec ? 0.001 : 1, maxQ = 4600;
+    var asks = "", bids = "", step = cur.p < 2 ? 0.001 : (cur.p < 20 ? 0.01 : 0.05), maxQ = 4600;
     var ap = cur.p + step, bp = cur.p - step;
     for (var i = 0; i < 9; i++) {
       var qa = Math.round(rnd(300, 4400) * (1 - i * 0.05)), qb = Math.round(rnd(300, 4400) * (1 - i * 0.05));
@@ -247,7 +261,7 @@
     document.getElementById("asks").innerHTML = asks; document.getElementById("bids").innerHTML = bids;
     document.getElementById("spread").textContent = fmt(step * 2, cur.dec);
     document.getElementById("spreadPct").textContent = (step * 2 / cur.p * 100).toFixed(2) + "%";
-    document.getElementById("obStep").textContent = cur.dec ? "0.001" : "1";
+    document.getElementById("obStep").textContent = String(step);
     drawDepth();
   }
   document.getElementById("bookView").addEventListener("click", function (e) {
@@ -293,7 +307,7 @@
   window.addEventListener("resize", drawDepth);
   var tradeList = document.getElementById("tradeList"), tcount = 0;
   function addTrade() {
-    var up = Math.random() > 0.45, p = cur.p + (cur.dec ? rnd(-0.003, 0.003) : rnd(-3, 3));
+    var up = Math.random() > 0.45, p = cur.p * (1 + rnd(-0.0015, 0.0015));
     var t = new Date(), ts = t.toTimeString().slice(0, 8);
     var row = document.createElement("div"); row.className = "tr-row new";
     row.innerHTML = '<span class="num ' + (up ? 'up' : 'down') + '">' + fmt(p, cur.dec) + '</span><span class="num">' + fmt(Math.round(rnd(40, 2400)), 0) + '</span><span class="num">' + ts + '</span>';
@@ -308,7 +322,7 @@
   if ("IntersectionObserver" in window) new IntersectionObserver(function (en) { termVisible = en[0].isIntersecting; }, { rootMargin: "200px" }).observe(termEl);
   if (!reduce) {
     setInterval(function () {
-      MK.forEach(function (m) { m.prev = m.p; m.p = m.p + m.p * rnd(-0.0012, 0.0013); m.c = (m.p / m.base - 1) * 100 + (m.id === "H100-Q1" ? 1.42 : m.c * 0.98); });
+      MK.forEach(function (m) { m.prev = m.p; var v = m.ref ? 0.0002 : 0.0012; m.p = m.p + m.p * rnd(-v, v * 1.08); m.c = (m.p / m.base - 1) * 100 + (m.id === "GPU" ? 1.42 : m.c * 0.98); if (m.ref) m.chg = m.chg + rnd(-0.01, 0.01); });
       var last = candles[candles.length - 1]; var np = cur.p;
       last.c = np; last.h = Math.max(last.h, np); last.l = Math.min(last.l, np); last.v = Math.min(1, last.v + 0.02);
       renderTop(); renderTicket();
@@ -334,22 +348,23 @@
     return '<svg class="spark" viewBox="0 0 110 30" preserveAspectRatio="none"><polyline points="' + pts + '" fill="none" stroke="' + (up ? '#4ADE80' : '#FF4D6D') + '" stroke-width="1.8"/></svg>';
   }
   function renderBoard() {
-    var rows = MK.filter(function (m) { return filter === "all" || (filter === "q1" ? m.d === "Q1 2027" : m.cls === filter); });
+    var rows = MK.filter(function (m) { return filter === "all" || (filter === "ref" ? !!m.ref : m.cat === filter); });
     document.getElementById("boardBody").innerHTML = rows.map(function (m) {
-      var up7 = m.spark[27] >= m.spark[0];
-      return '<tr><td><span class="nm">' + m.n + '</span><span class="sub">' + (m.cls === "gpu" ? "GPU futures · USD per GPU-hr" : "Bare metal · USD per node-month") + '</span></td><td>' + m.d + '</td><td class="r num" style="font-weight:500">' + fmt(m.p, m.dec) + '</td><td class="r num ' + (m.c >= 0 ? 'up' : 'down') + '">' + (m.c >= 0 ? '+' : '−') + Math.abs(m.c).toFixed(2) + '%</td><td>' + spark(m.spark, up7) + '</td><td class="r num">' + m.oi + '</td><td class="r num">' + m.vol + '</td><td class="r num ' + (m.f >= 0 ? 'up' : 'down') + '">' + (m.f >= 0 ? '' : '−') + Math.abs(m.f).toFixed(4) + '%</td><td class="r"><a class="btn btn-ghost" href="#exchange">Trade</a></td></tr>';
+      var up7 = m.spark[27] >= m.spark[0], catName = CATS.filter(function (c) { return c[0] === m.cat; })[0][1];
+      return '<tr><td><span class="btag">' + m.tag + '</span></td><td><span class="nm">' + m.n + '</span><span class="sub">' + m.sub + '</span></td><td>' + catName + '</td><td>' + (m.ref ? "Index" : m.d) + '</td><td class="r num" style="font-weight:500">' + pDisp(m) + '</td><td class="r num ' + (m.c >= 0 ? 'up' : 'down') + '">' + (m.c >= 0 ? '+' : '−') + Math.abs(m.c).toFixed(2) + '%</td><td>' + spark(m.spark, up7) + '</td><td class="r num">' + m.oi + '</td><td class="r num">' + m.vol + '</td><td class="r num ' + (m.f >= 0 ? 'up' : 'down') + '">' + (m.ref ? "—" : (m.f >= 0 ? '' : '−') + Math.abs(m.f).toFixed(4) + '%') + '</td><td class="r"><a class="btn btn-ghost" href="#exchange">Trade</a></td></tr>';
     }).join("");
   }
   renderBoard();
 
   var CURVES = {
-    H100: { u: "USD / GPU-hr", d: 2, pts: [2.04, 2.10, 1.96, 1.81, 1.69, 1.56] },
-    H200: { u: "USD / GPU-hr", d: 2, pts: [2.95, 2.98, 2.86, 2.71, 2.60, 2.48] },
-    B200: { u: "USD / GPU-hr", d: 2, pts: [4.60, 4.52, 4.21, 3.94, 3.70, 3.42] },
-    METAL: { u: "USD / node-month", d: 0, pts: [1210, 1240, 1198, 1176, 1165, 1150] }
+    GPU: { u: "USD / GPU-hr", d: 3, pts: [1.02, 0.989, 0.955, 0.92, 0.89, 0.86] },
+    VCPU: { u: "USD / vCPU-month", d: 2, pts: [43.3, 42.05, 40.6, 39.4, 38.1, 37.0] },
+    RAM: { u: "USD / GB-month", d: 2, pts: [3.13, 3.04, 2.96, 2.9, 2.84, 2.77] },
+    BLK: { u: "USD / TB-month", d: 2, pts: [51.6, 50.1, 48.9, 47.8, 46.6, 45.5] },
+    BW: { u: "USD / TB egress", d: 2, pts: [5.15, 5.00, 4.9, 4.82, 4.75, 4.68] }
   };
   var PERIODS = ["Spot", "Q1 27", "Q2 27", "Q3 27", "Q4 27", "Q1 28"];
-  var svg = document.getElementById("curveSvg"), tip = document.getElementById("curveTip"), curveKey = "H100";
+  var svg = document.getElementById("curveSvg"), tip = document.getElementById("curveTip"), curveKey = "GPU";
   function drawCurve() {
     var c = CURVES[curveKey], pts = c.pts, W = 760, H = 420, L = 56, R = 24, T = 30, B = 46;
     var mn = Math.min.apply(null, pts), mx = Math.max.apply(null, pts), sp = mx - mn || 1; mn -= sp * 0.25; mx += sp * 0.25;
@@ -439,11 +454,11 @@
   renderRegions();
   var feed = document.getElementById("feed"), feedN = 0, gpuCount = 18400, settled = 2.91;
   var EV = [
-    function () { var s = SITES[Math.floor(rnd(0, SITES.length))][2], q = [256, 512, 1024, 2048][Math.floor(rnd(0, 4))]; return ["mint", "Capacity token minted", q + " GPU-hr · H100 · Q1 27 <span>· " + s + "</span>"]; },
-    function () { var m = MK[Math.floor(rnd(0, MK.length))]; return ["fill", "Order filled", fmt(Math.round(rnd(200, 6000)), 0) + " " + m.unit + " · " + m.n + " " + m.d + " <span>@ " + fmt(m.p, m.dec) + "</span>"]; },
-    function () { lastSettleT = Date.now(); settled += rnd(0.002, 0.008); document.getElementById("sysSettled").textContent = settled.toFixed(2) + "M"; var m = MK[Math.floor(rnd(0, MK.length))]; return ["settle", "Contract settled", fmt(Math.round(rnd(1000, 12000)), 0) + " " + m.unit + " · " + m.n + " " + m.d + " <span>· cash</span>"]; },
+    function () { var s = SITES[Math.floor(rnd(0, SITES.length))][2], q = [256, 512, 1024, 2048][Math.floor(rnd(0, 4))]; return ["mint", "Capacity token minted", q + " GPU-hr · GPU · " + QS[qi].replace("20", "") + " <span>· " + s + "</span>"]; },
+    function () { var m = MK[Math.floor(rnd(0, 5))]; return ["fill", "Order filled", fmt(Math.round(rnd(200, 6000)), 0) + " " + m.unit + " · " + m.n + " " + m.tag + " " + m.d + " <span>@ " + fmt(m.p, m.dec) + "</span>"]; },
+    function () { lastSettleT = Date.now(); settled += rnd(0.002, 0.008); document.getElementById("sysSettled").textContent = settled.toFixed(2) + "M"; var m = MK[Math.floor(rnd(0, 5))]; return ["settle", "Contract settled", fmt(Math.round(rnd(1000, 12000)), 0) + " " + m.unit + " · " + m.n + " " + m.tag + " " + m.d + " <span>· cash</span>"]; },
     function () { var s = SITES[Math.floor(rnd(0, SITES.length))][2]; return ["deliver", "Capacity delivered", fmt(Math.round(rnd(64, 1024)), 0) + " GPU-hr → workload <span>· " + s + "</span>"]; },
-    function () { var m = MK[Math.floor(rnd(0, MK.length))]; return ["lp", "Liquidity added", "$" + fmt(Math.round(rnd(20, 400)) * 1000, 0) + " · " + m.n + " " + m.d]; },
+    function () { var m = MK[Math.floor(rnd(0, 5))]; return ["lp", "Liquidity added", "$" + fmt(Math.round(rnd(20, 400)) * 1000, 0) + " · " + m.n + " " + m.tag + " " + m.d]; },
     function () { gpuCount += [8, 16, 32, 64][Math.floor(rnd(0, 4))]; document.getElementById("sysGpu").textContent = fmt(gpuCount, 0); var s = SITES[Math.floor(rnd(0, SITES.length))][2]; return ["mint", "Site verified", "+" + [8, 16, 32, 64][Math.floor(rnd(0, 4))] + " H100 · attested <span>· " + s + "</span>"]; }
   ];
   function addEvent() {
@@ -489,10 +504,31 @@
   });
   function selectMarket(id, scroll) { var m = MK.filter(function (x) { return x.id === id; })[0]; if (!m) return; cur = m; buildCandles(); renderMkts(); renderTop(); renderBook(); renderTicket(); if (scroll) document.getElementById("exchange").scrollIntoView({ behavior: "smooth" }); }
   tt.addEventListener("click", function (e) { var t = e.target.closest(".tick"); if (!t) return; var i = +t.querySelector(".tp").dataset.i; selectMarket(MK[i].id, true); });
-  document.getElementById("boardBody").addEventListener("click", function (e) { if (e.target.closest("a")) { e.preventDefault(); } var tr = e.target.closest("tr"); if (!tr) return; var idx = [].indexOf.call(tr.parentNode.children, tr); var rows = MK.filter(function (m) { return filter === "all" || (filter === "q1" ? m.d === "Q1 2027" : m.cls === filter); }); if (rows[idx]) selectMarket(rows[idx].id, true); });
+  document.getElementById("boardBody").addEventListener("click", function (e) { if (e.target.closest("a")) { e.preventDefault(); } var tr = e.target.closest("tr"); if (!tr) return; var idx = [].indexOf.call(tr.parentNode.children, tr); var rows = MK.filter(function (m) { return filter === "all" || (filter === "ref" ? !!m.ref : m.cat === filter); }); if (rows[idx]) selectMarket(rows[idx].id, true); });
   var lastMark = cur.p;
 
   var hv0 = document.querySelector(".hero-video"); if (hv0) { var tryPlay = function () { var pr = hv0.play(); if (pr && pr.catch) pr.catch(function () {}); }; tryPlay(); document.addEventListener("click", tryPlay, { once: true }); document.addEventListener("touchstart", tryPlay, { once: true, passive: true }); }
+
+  var PAGES = { about: document.getElementById("page-about") }, home = document.getElementById("home");
+  function route() {
+    var h = (location.hash || "").replace("#", ""), pg = h.split("-")[0]; if (pg === "docs") pg = "about";
+    if (PAGES[pg]) {
+      home.hidden = true; Object.keys(PAGES).forEach(function (k) { PAGES[k].hidden = k !== pg; });
+      document.body.classList.add("on-page");
+      var target = h.indexOf("-") > -1 ? document.getElementById(h) : null;
+      requestAnimationFrame(function () { if (target) target.scrollIntoView({ behavior: "smooth", block: "start" }); else window.scrollTo({ top: 0 }); });
+      document.querySelectorAll(".doc-nav a").forEach(function (a) { a.classList.toggle("on", a.getAttribute("href") === "#" + h); });
+    } else {
+      var wasPage = home.hidden; home.hidden = false; Object.keys(PAGES).forEach(function (k) { PAGES[k].hidden = true; });
+      document.body.classList.remove("on-page");
+      if (h) { var el = document.getElementById(h); if (el) requestAnimationFrame(function () { el.scrollIntoView({ behavior: wasPage ? "instant" : "smooth" }); }); }
+      else if (wasPage) window.scrollTo({ top: 0 });
+      if (wasPage) { drawHero(); drawCandles(); drawGlobe(); revealScan(); }
+    }
+  }
+  window.addEventListener("hashchange", route); route();
+  document.querySelectorAll("[data-page]").forEach(function (a) { a.addEventListener("click", function () { }); });
+  if ("IntersectionObserver" in window && PAGES.about) { var dh = PAGES.about.querySelectorAll("h1[id], h2[id]"), dobs = new IntersectionObserver(function (es) { es.forEach(function (e) { if (e.isIntersecting) document.querySelectorAll(".doc-nav a").forEach(function (a) { a.classList.toggle("on", a.getAttribute("href") === "#" + e.target.id); }); }); }, { rootMargin: "-20% 0px -70% 0px" }); dh.forEach(function (x) { dobs.observe(x); }); }
 
   var btn = document.getElementById("menuBtn"), menu = document.getElementById("mobileMenu");
   btn.addEventListener("click", function () { var open = menu.classList.toggle("open"); btn.setAttribute("aria-expanded", open ? "true" : "false"); btn.textContent = open ? "✕" : "☰"; });

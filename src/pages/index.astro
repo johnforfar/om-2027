@@ -2,38 +2,43 @@
 import Base from '../layouts/Base.astro';
 import Header from '../components/Header.astro';
 import Hero from '../components/Hero.astro';
-import Ticker from '../components/Ticker.astro';
+import Statement from '../components/Statement.astro';
 import Exchange from '../components/Exchange.astro';
 import Markets from '../components/Markets.astro';
 import Curve from '../components/Curve.astro';
-import Architecture from '../components/Architecture.astro';
+import Flow from '../components/Flow.astro';
 import Network from '../components/Network.astro';
+import Architecture from '../components/Architecture.astro';
 import Capacity from '../components/Capacity.astro';
 import Settlement from '../components/Settlement.astro';
 import Participants from '../components/Participants.astro';
 import Chain from '../components/Chain.astro';
-import Statement from '../components/Statement.astro';
 import Faq from '../components/Faq.astro';
 import Newsletter from '../components/Newsletter.astro';
+import About from '../components/About.astro';
 import Footer from '../components/Footer.astro';
 import WalletModal from '../components/WalletModal.astro';
 ---
 <Base>
 <Header />
+  <main id="home">
 <Hero />
-<Ticker />
+<Statement />
 <Exchange />
 <Markets />
 <Curve />
-<Architecture />
+<Flow />
 <Network />
+<Architecture />
 <Capacity />
 <Settlement />
 <Participants />
 <Chain />
-<Statement />
 <Faq />
 <Newsletter />
+  </main>
+
+<About />
 <Footer />
 <WalletModal />
 </Base>

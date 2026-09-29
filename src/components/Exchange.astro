@@ -1,24 +1,19 @@
   <section class="section" id="exchange">
-    <div class="wrap section-head rvl">
-      <h2 class="display">The Exchange</h2>
-      <p class="lede">Order books per hardware class and delivery quarter. Settled on Solana.</p>
-      <p class="eyebrow" style="text-align:right;align-self:end"><span class="live-dot"></span>Live · Solana</p>
-    </div>
     <div class="wrap terminal-wrap" style="padding-top:var(--pad-y)">
       <div class="rvl terminal modern" id="terminal">
         <div class="t-top">
-          <div class="t-market"><span class="sym" id="tSym">H100 80GB</span><span class="tag" id="tPeriod">Q1 2027</span><span class="tag">Cash / physical</span></div>
-          <div class="t-stat"><div class="k">Mark</div><div class="v t-price num" id="tMark">2.104</div></div>
+          <div class="t-market"><span class="tag mono" id="tTag">GPU</span><span class="sym" id="tSym">GPU</span><span class="sub" id="tPeriod">Accelerator · per GPU · hour</span><select id="instSel" class="inst-sel" aria-label="Switch instrument"></select></div>
+          <div class="t-stat t-dlv"><div class="k">Delivery</div><div class="tabs" id="dlvTabs"><button data-q="0">Q4 26</button><button class="on" data-q="1">Q1 27</button><button data-q="2">Q2 27</button><button data-q="3">Q3 27</button></div></div>
+          <div class="t-stat"><div class="k">Mark <span id="tUnit" style="color:var(--dim)">USD / GPU-hr</span></div><div class="v t-price num" id="tMark">0.989</div></div>
           <div class="t-stat"><div class="k">24h change</div><div class="v num up" id="tChg">+1.42%</div></div>
-          <div class="t-stat"><div class="k">Index</div><div class="v num" id="tIndex">2.101</div></div>
+          <div class="t-stat"><div class="k">Index</div><div class="v num" id="tIndex">0.988</div></div>
           <div class="t-stat"><div class="k">24h volume</div><div class="v num">$6.84M</div></div>
           <div class="t-stat"><div class="k">Open interest</div><div class="v num">41.2M GPU-hr</div></div>
           <div class="t-stat"><div class="k">Funding / 8h</div><div class="v num up">0.0041%</div></div>
-          <div class="t-stat"><div class="k">Delivery</div><div class="v num">1 Jan 2027 · 94d</div></div>
+          <div class="t-stat"><div class="k">Expiry</div><div class="v num">1 Jan 2027 · 94d</div></div>
         </div>
         <div class="t-grid">
           <div class="mkts-pane">
-            <div class="t-pane-h"><span>Markets</span><div class="tabs"><button class="on">GPU</button><button>Metal</button></div></div>
             <div class="mkts" id="mktList"></div>
           </div>
           <div class="chart-pane">
@@ -44,18 +39,18 @@
           <div class="ticket">
             <div class="seg"><button class="long on" id="btnLong">Long</button><button class="short" id="btnShort">Short</button></div>
             <div class="seg small" id="otSeg"><button class="on" data-t="market">Market</button><button data-t="limit">Limit</button><button data-t="stop">Stop</button></div>
-            <div class="field" id="priceField" style="display:none"><label>Limit price</label><div class="in"><input id="inPrice" inputmode="decimal" value="2.104"><span id="priceUnit">USD</span></div></div>
+            <div class="field" id="priceField" style="display:none"><label>Limit price</label><div class="in"><input id="inPrice" inputmode="decimal" value="0.989"><span id="priceUnit">USD</span></div></div>
             <div class="field"><label>Size <span>Avail. 128,400 USDC</span></label><div class="in"><input id="inSize" inputmode="numeric" value="12000"><span id="sizeUnit">GPU-hr</span></div></div>
             <div class="field"><label>Leverage</label><div class="lev" id="levBtns"><button data-l="1">1×</button><button data-l="2">2×</button><button class="on" data-l="5">5×</button><button data-l="10">10×</button><button data-l="20">20×</button></div></div>
             <div>
-              <div class="kv"><span>Est. entry</span><b class="num" id="kEntry">2.106</b></div>
-              <div class="kv"><span>Notional</span><b class="num" id="kNot">$25,272</b></div>
-              <div class="kv"><span>Margin</span><b class="num" id="kMar">$5,054</b></div>
-              <div class="kv"><span>Liquidation</span><b class="num" id="kLiq">1.706</b></div>
+              <div class="kv"><span>Est. entry</span><b class="num" id="kEntry">0.990</b></div>
+              <div class="kv"><span>Notional</span><b class="num" id="kNot">$11,880</b></div>
+              <div class="kv"><span>Margin</span><b class="num" id="kMar">$2,376</b></div>
+              <div class="kv"><span>Liquidation</span><b class="num" id="kLiq">0.802</b></div>
               <div class="kv"><span>Fees</span><b class="num">0.02% / 0.05%</b></div>
             </div>
-            <button class="go long" id="goBtn">Long H100 · Q1 27</button>
-            <div class="kv" style="justify-content:center;color:var(--dim)">Cross margin · USDC · Solana</div>
+            <button class="go long" id="goBtn">Long GPU · Q1 27</button>
+            <div class="kv" style="justify-content:center;color:var(--dim)">Trading opens at launch · Cross margin · USDC</div>
           </div>
         </div>
         <div class="t-bottom">
@@ -64,9 +59,9 @@
             <table class="t-table">
               <thead><tr><th>Market</th><th>Side</th><th>Size</th><th>Entry</th><th>Mark</th><th>Liq.</th><th>PnL</th><th>Margin</th><th></th></tr></thead>
               <tbody>
-                <tr><td><b>H100 80GB · Q1 27</b></td><td><span class="pill l">Long 5×</span></td><td class="num">40,000 GPU-hr</td><td class="num">2.061</td><td class="num" id="pMark">2.104</td><td class="num">1.671</td><td class="num up" id="pPnl">+$1,720 (+10.4%)</td><td class="num">$16,488</td><td><a class="btn btn-ghost" style="padding:4px 10px;font-size:11px" href="#">Close</a></td></tr>
-                <tr><td><b>H200 141GB · Q2 27</b></td><td><span class="pill s">Short 2×</span></td><td class="num">8,000 GPU-hr</td><td class="num">2.912</td><td class="num">2.861</td><td class="num">4.301</td><td class="num up">+$408 (+3.5%)</td><td class="num">$11,648</td><td><a class="btn btn-ghost" style="padding:4px 10px;font-size:11px" href="#">Close</a></td></tr>
-                <tr><td><b>Bare metal 96c · Q1 27</b></td><td><span class="pill t">Capacity token</span></td><td class="num">24 node-mo</td><td class="num">1,190</td><td class="num">1,240</td><td class="num">—</td><td class="num up">+$1,200 (+4.2%)</td><td class="num">Delivered Q1</td><td><a class="btn btn-ghost" style="padding:4px 10px;font-size:11px" href="#settlement">Redeem</a></td></tr>
+                <tr><td><b>GPU · Q1 27</b></td><td><span class="pill l">Long 5×</span></td><td class="num">40,000 GPU-hr</td><td class="num">0.962</td><td class="num" id="pMark">0.989</td><td class="num">0.780</td><td class="num up" id="pPnl">+$1,080 (+14.0%)</td><td class="num">$7,696</td><td><a class="btn btn-ghost" style="padding:4px 10px;font-size:11px" href="#">Close</a></td></tr>
+                <tr><td><b>CPU · VCPU · Q2 27</b></td><td><span class="pill s">Short 2×</span></td><td class="num">600 vCPU-mo</td><td class="num">41.90</td><td class="num">40.58</td><td class="num">61.80</td><td class="num up">+$792 (+6.3%)</td><td class="num">$12,570</td><td><a class="btn btn-ghost" style="padding:4px 10px;font-size:11px" href="#">Close</a></td></tr>
+                <tr><td><b>Storage · BLK · Q1 27</b></td><td><span class="pill t">Capacity token</span></td><td class="num">240 TB-mo</td><td class="num">48.20</td><td class="num">50.10</td><td class="num">—</td><td class="num up">+$456 (+3.9%)</td><td class="num">Delivered Q1</td><td><a class="btn btn-ghost" style="padding:4px 10px;font-size:11px" href="#settlement">Redeem</a></td></tr>
               </tbody>
             </table>
           </div>
@@ -82,3 +77,4 @@
       </div>
     </div>
   </section>
+
