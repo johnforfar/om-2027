@@ -1,0 +1,49 @@
+  <section class="section dark" id="architecture">
+    <div class="wrap section-head rvl">
+      <h2 class="display">Architecture</h2>
+      <p class="lede">Supply in. Price in the middle. Compute out.</p>
+      <p class="eyebrow" style="text-align:right;align-self:end">Three layers on Solana</p>
+    </div>
+    <div class="rvl wrap flow">
+      <svg viewBox="0 0 1200 460" role="img" aria-label="Openmesh architecture: data centres to verification to capacity tokens to exchange to settlement to workloads">
+        <defs>
+          <marker id="ar" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto"><path d="M0 0L10 5L0 10z" fill="var(--line-strong)"/></marker>
+          <linearGradient id="rail" x1="0" x2="1"><stop offset="0" stop-color="#D4FF3B" stop-opacity="0"/><stop offset=".5" stop-color="#D4FF3B"/><stop offset="1" stop-color="#D4FF3B" stop-opacity="0"/></linearGradient>
+        </defs>
+        <g font-size="11" fill="var(--dim)" letter-spacing="2">
+          <text x="60" y="52">01 INFRASTRUCTURE CAPACITY MARKET</text>
+          <text x="600" y="52" text-anchor="middle">02 EXCHANGE</text>
+          <text x="1140" y="52" text-anchor="end">03 SETTLEMENT LAYER</text>
+        </g>
+        <g fill="none" stroke="var(--line-strong)" stroke-width="1.2" marker-end="url(#ar)">
+          <path id="p1" d="M210 160 H260"/>
+          <path id="p2" d="M420 160 H470"/>
+          <path id="p3" d="M660 160 H740"/>
+          <path id="p4" d="M900 160 H950"/>
+          <path id="p5" d="M600 300 V212"/>
+          <path id="p6" d="M1035 212 V300"/>
+        </g>
+        <path id="loop" d="M1035 360 H600 V320" fill="none" stroke="var(--line-strong)" stroke-width="1.2" stroke-dasharray="3 5"/>
+        <g font-size="13" fill="var(--fg)">
+          <g><rect x="60" y="120" width="150" height="80" rx="10" fill="var(--bg-2)" stroke="var(--line-strong)"/><text x="135" y="152" text-anchor="middle" font-weight="500">Data centres</text><text x="135" y="174" text-anchor="middle" font-size="11" fill="var(--muted)">GPU · bare metal</text></g>
+          <g><rect x="260" y="120" width="160" height="80" rx="10" fill="var(--bg-2)" stroke="var(--line-strong)"/><text x="340" y="152" text-anchor="middle" font-weight="500">Verification</text><text x="340" y="174" text-anchor="middle" font-size="11" fill="var(--muted)">inventory · power · net</text></g>
+          <g><rect x="470" y="120" width="190" height="80" rx="10" fill="var(--bg-2)" stroke="rgba(212,255,59,0.8)"/><text x="565" y="152" text-anchor="middle" font-weight="500">Capacity tokens</text><text x="565" y="174" text-anchor="middle" font-size="11" fill="var(--muted)">SPL · GPU-hr / node-mo</text></g>
+          <g><rect x="740" y="108" width="160" height="104" rx="10" fill="var(--bg-3)" stroke="#D4FF3B" stroke-width="2"/><text x="820" y="146" text-anchor="middle" font-weight="500">Order book</text><text x="820" y="166" text-anchor="middle" font-size="11" fill="var(--muted)">CLOB · price-time</text><text x="820" y="184" text-anchor="middle" font-size="11" fill="var(--muted)">cross-margin USDC</text></g>
+          <g><rect x="950" y="120" width="170" height="80" rx="10" fill="var(--bg-2)" stroke="rgba(124,92,255,0.8)"/><text x="1035" y="152" text-anchor="middle" font-weight="500">Settlement</text><text x="1035" y="174" text-anchor="middle" font-size="11" fill="var(--muted)">cash · physical</text></g>
+          <g><rect x="520" y="300" width="160" height="72" rx="10" fill="var(--bg-2)" stroke="var(--line-strong)"/><text x="600" y="330" text-anchor="middle" font-weight="500">Traders · LPs</text><text x="600" y="350" text-anchor="middle" font-size="11" fill="var(--muted)">long · short · liquidity</text></g>
+          <g><rect x="950" y="300" width="170" height="72" rx="10" fill="var(--bg-2)" stroke="rgba(255,176,32,0.8)"/><text x="1035" y="330" text-anchor="middle" font-weight="500">Workloads</text><text x="1035" y="350" text-anchor="middle" font-size="11" fill="var(--muted)">delivered on Openmesh</text></g>
+        </g>
+        <rect x="60" y="412" width="1060" height="1" fill="url(#rail)"/>
+        <text x="600" y="440" text-anchor="middle" font-size="11" fill="var(--muted)" letter-spacing="3">SOLANA · ~400MS BLOCKS · SUB-CENT FEES</text>
+        <g fill="#D4FF3B">
+          <circle r="3.5"><animateMotion dur="1.6s" repeatCount="indefinite"><mpath href="#p1"/></animateMotion></circle>
+          <circle r="3.5"><animateMotion dur="1.6s" begin="0.5s" repeatCount="indefinite"><mpath href="#p2"/></animateMotion></circle>
+          <circle r="3.5"><animateMotion dur="1.8s" begin="1s" repeatCount="indefinite"><mpath href="#p3"/></animateMotion></circle>
+        </g>
+        <g fill="#D4FF3B"><circle r="3.5"><animateMotion dur="1.4s" repeatCount="indefinite"><mpath href="#p5"/></animateMotion></circle></g>
+        <g fill="#FFFFFF"><circle r="3.5"><animateMotion dur="1.6s" begin="0.3s" repeatCount="indefinite"><mpath href="#p4"/></animateMotion></circle></g>
+        <g fill="#FFB020"><circle r="3.5"><animateMotion dur="1.6s" begin="0.8s" repeatCount="indefinite"><mpath href="#p6"/></animateMotion></circle></g>
+        <g fill="var(--line-strong)"><circle r="2.5"><animateMotion dur="5s" repeatCount="indefinite"><mpath href="#loop"/></animateMotion></circle></g>
+      </svg>
+    </div>
+  </section>

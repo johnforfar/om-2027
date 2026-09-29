@@ -1,0 +1,21 @@
+  <section class="section" id="markets">
+    <div class="wrap section-head rvl">
+      <h2 class="display">Markets</h2>
+      <p class="lede">Per hardware class and delivery quarter. Quoted in USDC.</p>
+      <p class="eyebrow" style="text-align:right;align-self:end">12 markets · USDC</p>
+    </div>
+    <div class="wrap" style="padding:var(--pad-y) 0">
+      <div class="rvl board">
+        <div class="board-h">
+          <div class="tabs" id="boardTabs"><button class="on" data-f="all">All</button><button data-f="gpu">GPU</button><button data-f="metal">Bare metal</button><button data-f="q1">Q1 2027</button></div>
+          <span style="font-size:12px;color:var(--dim)"><span class="live-dot"></span>Realtime</span>
+        </div>
+        <div class="t-scroll">
+          <table>
+            <thead><tr><th>Market</th><th>Delivery</th><th class="r">Last</th><th class="r">24h</th><th>7d</th><th class="r">Open interest</th><th class="r">24h volume</th><th class="r">Funding</th><th class="r"></th></tr></thead>
+            <tbody id="boardBody"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </section>

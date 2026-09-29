@@ -1,0 +1,20 @@
+  <section class="section" id="curve">
+    <div class="rvl wrap curve">
+      <div class="copy">
+        <p class="eyebrow" style="margin-bottom:16px">Forward curve</p>
+        <h2 class="display" style="font-size:clamp(32px,3.8vw,48px)">A term structure for compute.</h2>
+        <p class="lede" style="margin-top:16px;max-width:36ch">Every delivery quarter is its own market.</p>
+        <div class="chips" id="curveChips"><button class="on" data-c="H100">H100 80GB</button><button data-c="H200">H200 141GB</button><button data-c="B200">B200</button><button data-c="METAL">Bare metal 96c</button></div>
+        <div class="curve-read">
+          <div><div class="k">Spot</div><div class="v num" id="crSpot">2.04</div></div>
+          <div><div class="k">Q1 2028</div><div class="v num" id="crFar">1.56</div></div>
+          <div><div class="k">Shape</div><div class="v" id="crShape">Backwardation</div></div>
+          <div><div class="k">Implied 12m</div><div class="v num down" id="crImp">−23.5%</div></div>
+        </div>
+      </div>
+      <div class="plot">
+        <svg id="curveSvg" viewBox="0 0 760 420" role="img" aria-label="Forward curve"></svg>
+        <div class="tip" id="curveTip"></div>
+      </div>
+    </div>
+  </section>

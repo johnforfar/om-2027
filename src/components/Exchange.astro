@@ -1,0 +1,84 @@
+  <section class="section" id="exchange">
+    <div class="wrap section-head rvl">
+      <h2 class="display">The Exchange</h2>
+      <p class="lede">Order books per hardware class and delivery quarter. Settled on Solana.</p>
+      <p class="eyebrow" style="text-align:right;align-self:end"><span class="live-dot"></span>Live · Solana</p>
+    </div>
+    <div class="wrap terminal-wrap" style="padding-top:var(--pad-y)">
+      <div class="rvl terminal modern" id="terminal">
+        <div class="t-top">
+          <div class="t-market"><span class="sym" id="tSym">H100 80GB</span><span class="tag" id="tPeriod">Q1 2027</span><span class="tag">Cash / physical</span></div>
+          <div class="t-stat"><div class="k">Mark</div><div class="v t-price num" id="tMark">2.104</div></div>
+          <div class="t-stat"><div class="k">24h change</div><div class="v num up" id="tChg">+1.42%</div></div>
+          <div class="t-stat"><div class="k">Index</div><div class="v num" id="tIndex">2.101</div></div>
+          <div class="t-stat"><div class="k">24h volume</div><div class="v num">$6.84M</div></div>
+          <div class="t-stat"><div class="k">Open interest</div><div class="v num">41.2M GPU-hr</div></div>
+          <div class="t-stat"><div class="k">Funding / 8h</div><div class="v num up">0.0041%</div></div>
+          <div class="t-stat"><div class="k">Delivery</div><div class="v num">1 Jan 2027 · 94d</div></div>
+        </div>
+        <div class="t-grid">
+          <div class="mkts-pane">
+            <div class="t-pane-h"><span>Markets</span><div class="tabs"><button class="on">GPU</button><button>Metal</button></div></div>
+            <div class="mkts" id="mktList"></div>
+          </div>
+          <div class="chart-pane">
+            <div class="t-pane-h"><div class="tabs" id="tfTabs"><button>15m</button><button class="on">1H</button><button>4H</button><button>1D</button></div><span>Candles · volume</span></div>
+            <div class="chart-box">
+              <div class="chart-legend"><span>O <b id="lO">—</b></span><span>H <b id="lH">—</b></span><span>L <b id="lL">—</b></span><span>C <b id="lC">—</b></span></div>
+              <canvas id="candles"></canvas>
+            </div>
+          </div>
+          <div class="ob">
+            <div class="t-pane-h"><div class="tabs" id="obTabs"><button class="on" data-v="book">Book</button><button data-v="depth">Depth</button></div><span id="obStep">0.001</span></div>
+            <div id="bookView">
+            <div class="ob-rows" id="asks"></div>
+            <div class="ob-spread"><span>Spread <b class="num" id="spread">0.002</b></span><span class="num" id="spreadPct">0.09%</span></div>
+            <div class="ob-rows" id="bids"></div>
+            </div>
+            <div class="depth-box" id="depthView" style="display:none"><canvas id="depthCanvas"></canvas></div>
+            <div class="trades">
+              <div class="t-pane-h"><span>Recent trades</span><span>GPU-hr</span></div>
+              <div id="tradeList"></div>
+            </div>
+          </div>
+          <div class="ticket">
+            <div class="seg"><button class="long on" id="btnLong">Long</button><button class="short" id="btnShort">Short</button></div>
+            <div class="seg small" id="otSeg"><button class="on" data-t="market">Market</button><button data-t="limit">Limit</button><button data-t="stop">Stop</button></div>
+            <div class="field" id="priceField" style="display:none"><label>Limit price</label><div class="in"><input id="inPrice" inputmode="decimal" value="2.104"><span id="priceUnit">USD</span></div></div>
+            <div class="field"><label>Size <span>Avail. 128,400 USDC</span></label><div class="in"><input id="inSize" inputmode="numeric" value="12000"><span id="sizeUnit">GPU-hr</span></div></div>
+            <div class="field"><label>Leverage</label><div class="lev" id="levBtns"><button data-l="1">1×</button><button data-l="2">2×</button><button class="on" data-l="5">5×</button><button data-l="10">10×</button><button data-l="20">20×</button></div></div>
+            <div>
+              <div class="kv"><span>Est. entry</span><b class="num" id="kEntry">2.106</b></div>
+              <div class="kv"><span>Notional</span><b class="num" id="kNot">$25,272</b></div>
+              <div class="kv"><span>Margin</span><b class="num" id="kMar">$5,054</b></div>
+              <div class="kv"><span>Liquidation</span><b class="num" id="kLiq">1.706</b></div>
+              <div class="kv"><span>Fees</span><b class="num">0.02% / 0.05%</b></div>
+            </div>
+            <button class="go long" id="goBtn">Long H100 · Q1 27</button>
+            <div class="kv" style="justify-content:center;color:var(--dim)">Cross margin · USDC · Solana</div>
+          </div>
+        </div>
+        <div class="t-bottom">
+          <div class="t-pane-h"><div class="tabs"><button class="on">Positions (3)</button><button>Orders (2)</button><button>Capacity tokens (1)</button><button>History</button></div><span>Cross margin</span></div>
+          <div class="t-scroll">
+            <table class="t-table">
+              <thead><tr><th>Market</th><th>Side</th><th>Size</th><th>Entry</th><th>Mark</th><th>Liq.</th><th>PnL</th><th>Margin</th><th></th></tr></thead>
+              <tbody>
+                <tr><td><b>H100 80GB · Q1 27</b></td><td><span class="pill l">Long 5×</span></td><td class="num">40,000 GPU-hr</td><td class="num">2.061</td><td class="num" id="pMark">2.104</td><td class="num">1.671</td><td class="num up" id="pPnl">+$1,720 (+10.4%)</td><td class="num">$16,488</td><td><a class="btn btn-ghost" style="padding:4px 10px;font-size:11px" href="#">Close</a></td></tr>
+                <tr><td><b>H200 141GB · Q2 27</b></td><td><span class="pill s">Short 2×</span></td><td class="num">8,000 GPU-hr</td><td class="num">2.912</td><td class="num">2.861</td><td class="num">4.301</td><td class="num up">+$408 (+3.5%)</td><td class="num">$11,648</td><td><a class="btn btn-ghost" style="padding:4px 10px;font-size:11px" href="#">Close</a></td></tr>
+                <tr><td><b>Bare metal 96c · Q1 27</b></td><td><span class="pill t">Capacity token</span></td><td class="num">24 node-mo</td><td class="num">1,190</td><td class="num">1,240</td><td class="num">—</td><td class="num up">+$1,200 (+4.2%)</td><td class="num">Delivered Q1</td><td><a class="btn btn-ghost" style="padding:4px 10px;font-size:11px" href="#settlement">Redeem</a></td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+      <div class="status-strip" aria-label="System status">
+        <div><i class="ok"></i> Matching engine <b>online</b></div>
+        <div>Solana slot <b class="num" id="slot">312,884,102</b></div>
+        <div>Match latency <b class="num" id="lat">3.1 ms</b></div>
+        <div>Orders / s <b class="num" id="ops">1,240</b></div>
+        <div>Index feed <b>7 sources</b></div>
+        <div>Last settlement <b class="num" id="lastSettle">2s ago</b></div>
+      </div>
+    </div>
+  </section>
