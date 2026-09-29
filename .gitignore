@@ -4,7 +4,7 @@ dist/
 .vercel/
 .DS_Store
 shots/
-BRIEF.md
-LOCAL.md
-scripts/
+/BRIEF.md
+/LOCAL.md
+/scripts/
 *design brief*.html
