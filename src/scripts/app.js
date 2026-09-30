@@ -131,8 +131,8 @@ function keyFromHash() {
   return INSTRUMENTS[k] ? k : "cpu";
 }
 
-const API_METRIC = { cpu: "cpu", gpu: "gpu", ram: "ram", storage: "storage" };
-const TF_DAYS = { "1D": 1, "1W": 7, "1M": 30, "1Y": 365, "5Y": 1826 };
+const API_METRIC = { cpu: "cpu", gpu: "gpu" };
+const TF_DAYS = { "1D": 1, "1W": 7, "1M": 30, "1Y": 365, "5Y": 1825 };
 const LIVE = { series: {}, capture: null, stale: false, health: "pending", flat: {} };
 const toPts = (arr) => arr.map(([d, v]) => ({ t: Date.parse(d + "T00:00:00Z"), price: +v, vol: 0 })).filter(p => !isNaN(p.t) && isFinite(p.price));
 function setLive(key, pts) {
@@ -145,8 +145,9 @@ function setLive(key, pts) {
 Object.entries(SNAP.series).forEach(([key, arr]) => INSTRUMENTS[key] && setLive(key, toPts(arr)));
 Object.entries(SNAP.ref).forEach(([key, r]) => {
   if (!INSTRUMENTS[key]) return;
+  delete INSTRUMENTS[key].price;
   INSTRUMENTS[key].delta = r.delta;
-  GROUPS.forEach(g => g.items.forEach(m => { if (m.key === key) m.delta = r.delta; }));
+  GROUPS.forEach(g => g.items.forEach(m => { if (m.key === key) { delete m.price; m.delta = r.delta; } }));
   setLive(key, toPts(r.series));
 });
 
@@ -155,7 +156,7 @@ function liveSeries(key, tf) {
   if (!all || all.length < 2) return null;
   const from = all[all.length - 1].t - TF_DAYS[tf] * 864e5;
   let pts = all.filter(p => p.t >= from);
-  if (pts.length < 2) pts = all.slice(-2);
+  if (pts.length < 2) pts = all;
   return pts.map(p => ({ t: p.t, price: p.price, vol: p.vol }));
 }
 
