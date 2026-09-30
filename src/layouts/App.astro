@@ -1,0 +1,23 @@
+---
+import '../styles/fonts.css';
+import '../styles/app.css';
+---
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Earth Compute — Exchange</title>
+<meta name="description" content="Earth Compute exchange: blended global prices for vCPU, GPU, RAM, storage, bandwidth, inference and power, with live inventory across hyperscale operators.">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Ccircle cx='16' cy='16' r='14' fill='none' stroke='%2334d399' stroke-width='2'/%3E%3Cpath d='M16 2v28M2 16h28M6 8c6 4 14 4 20 0M6 24c6-4 14-4 20 0' fill='none' stroke='%2334d399' stroke-width='1.5' opacity='.7'/%3E%3C/svg%3E">
+<link rel="preload" href="/fonts/inter-6.woff2" as="font" type="font/woff2" crossorigin>
+</head>
+<body>
+
+<slot />
+
+<script>
+  import '../scripts/app.js';
+</script>
+</body>
+</html>

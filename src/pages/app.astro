@@ -1,0 +1,74 @@
+---
+import App from '../layouts/App.astro';
+---
+<App>
+<header>
+  <div class="wrap nav">
+    <a class="brand" href="https://earth.ownx.co/" target="_blank" rel="noopener"><span class="wordmark"><b>Earth</b><span>Compute</span></span><span class="sep"></span></a>
+    <div class="picker" id="picker">
+      <button type="button" class="picker-btn" id="pickerBtn" aria-haspopup="listbox" aria-expanded="false">
+        <span class="sym" id="hSym"></span>
+        <h1 id="hName"></h1>
+        <span class="asset" id="hAsset"></span>
+        <svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>
+      </button>
+      <div class="menu" id="menu" role="listbox" hidden>
+        <div class="menu-head" id="menuHead">Switch instrument</div>
+        <ul id="menuList"></ul>
+      </div>
+    </div>
+    <div class="nav-right">
+      <div class="tf" id="tfBar" role="group" aria-label="Timeframe"></div>
+    </div>
+  </div>
+</header>
+
+<main class="wrap">
+  <section class="hero">
+    <div>
+      <div class="eyebrow" id="heroGroup"></div>
+      <h2 id="heroName"></h2>
+      <div class="price-row">
+        <span class="price-big" id="hPrice"></span>
+        <span class="price-chg" id="hChange"></span>
+        <span class="tf-label" id="hTf"></span>
+      </div>
+      <p class="desc" id="desc"></p>
+    </div>
+    <div class="strip" id="strip"></div>
+  </section>
+
+  <section class="card chart-sec">
+    <div class="chart-bar">
+      <div class="ohlc" id="ohlc"></div>
+    </div>
+    <div class="chart-wrap" id="chartWrap">
+      <svg id="chart" preserveAspectRatio="none"></svg>
+      <div class="tip" id="tip" hidden></div>
+    </div>
+  </section>
+
+  <section class="card table-sec" id="refNote" hidden><p class="ref-note">Reference index — tracked from public list prices and benchmark data. There is no tradable inventory for this instrument.</p></section>
+  <section class="card table-sec" id="tableSec">
+    <div class="table-bar">
+      <div>
+        <h3 id="invTitle">Available inventory</h3>
+        <p>Live price feed across hyperscale operators and datacenters</p>
+      </div>
+      <div class="sort-ind">Sort: <span id="sortName"></span> <span id="sortDirTxt"></span></div>
+    </div>
+    <div class="table-box">
+      <div class="table-scroll">
+        <table>
+          <thead><tr id="thRow"></tr></thead>
+          <tbody id="tbody"></tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+</main>
+<footer class="wrap">
+  <span>Powered by <a href="https://earth.ownx.co/" target="_blank" rel="noopener">Project Earth Compute</a></span>
+  <span>Prices in USD · <span id="footDate"></span></span>
+</footer>
+</App>
