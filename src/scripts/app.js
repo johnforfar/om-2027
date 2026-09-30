@@ -350,3 +350,13 @@ let rt; window.addEventListener("resize", () => { clearTimeout(rt); rt = setTime
 state.key = keyFromHash();
 $("footDate").textContent = new Date().toLocaleDateString([], { day: "numeric", month: "short", year: "numeric" });
 renderAll();
+
+fetch("/api/v1/health", { headers: { Accept: "application/json" } })
+  .then(r => r.ok ? r.json() : Promise.reject(new Error("health " + r.status)))
+  .then(h => {
+    const d = new Date(h.latest_capture + "T00:00:00Z");
+    if (isNaN(d)) throw new Error("health: bad latest_capture " + h.latest_capture);
+    const asOf = d.toLocaleDateString([], { day: "numeric", month: "short", year: "numeric", timeZone: "UTC" });
+    $("footDate").textContent = h.stale ? asOf + " · data may be stale" : asOf;
+  })
+  .catch(err => { console.warn("health check failed", err); $("footDate").textContent = "data date unknown"; });
