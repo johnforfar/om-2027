@@ -163,6 +163,7 @@ function renderAll() {
   const s = state.series;
   const first = s[0].price, last = s[s.length - 1].price;
   const change = last - first, changePct = (change / first) * 100, up = change >= 0;
+  const coverage = !!LIVE.series[key] && s[0].vol > 0 && Math.abs(s[s.length - 1].vol / s[0].vol - 1) > 0.1;
   const high = Math.max(...s.map(p => p.price)), low = Math.min(...s.map(p => p.price));
 
   $("hSym").textContent = meta.symbol;
@@ -173,7 +174,9 @@ function renderAll() {
   $("hPrice").textContent = ref ? fmtDelta(it.delta) : fmtPrice(last);
   const chg = $("hChange");
   chg.className = "price-chg " + (up ? "up" : "down");
-  chg.innerHTML = (up
+  chg.title = coverage ? "Change hidden: the number of products behind this price changed by more than 10% in this window" : "";
+  if (coverage) chg.className = "price-chg";
+  chg.innerHTML = coverage ? "—" : (up
     ? '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 7 13.5 15.5 8.5 10.5 2 17"/><path d="M16 7h6v6"/></svg>'
     : '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 17 13.5 8.5 8.5 13.5 2 7"/><path d="M16 17h6v-6"/></svg>')
     + `${up ? "+" : ""}${change.toFixed(3)} (${up ? "+" : ""}${changePct.toFixed(2)}%)`;
@@ -214,7 +217,7 @@ function renderAll() {
     <span><span class="k">High</span> <span class="mono hi">${P(high)}</span></span>
     <span><span class="k">Low</span> <span class="mono lo">${P(low)}</span></span>
     <span><span class="k">Last</span> <span class="mono">${P(last)}</span></span>
-    <span class="delta" style="background:${accentBg}"><span>Δ</span> <span class="mono ${up ? "hi" : "lo"}">${up ? "+" : ""}${changePct.toFixed(2)}%</span></span>`;
+    <span class="delta" style="background:${accentBg}"><span>Δ</span> <span class="mono ${coverage ? "" : up ? "hi" : "lo"}">${coverage ? "—" : (up ? "+" : "") + changePct.toFixed(2) + "%"}</span></span>`;
   $("desc").textContent = meta.description;
   renderFoot();
 
