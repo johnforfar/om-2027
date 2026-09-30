@@ -8,3 +8,5 @@ shots/
 /LOCAL.md
 /scripts/
 /*.html
+.env
+.env.*
