@@ -48,6 +48,7 @@ function upstreamQuery(url: URL) {
       out.set(k, v.slice(0, 80));
     }
   }
+  out.sort();
   const s = out.toString();
   return s ? '?' + s : '';
 }
@@ -57,10 +58,18 @@ export const GET: APIRoute = async ({ params, request, url }) => {
   if (!ROUTES.some((r) => r.test(path))) return fail(404, 'not found');
   if (!sameOrigin(request, url)) return fail(403, 'forbidden');
 
+  const query = upstreamQuery(url);
+  if (url.search !== query) {
+    return new Response(null, {
+      status: 308,
+      headers: { Location: url.pathname + query, 'Cache-Control': 'public, max-age=3600' },
+    });
+  }
+
   const key = getSecret('EC_API_KEY');
   if (!key && !OPEN.has(path)) return fail(503, 'api key not configured');
 
-  const target = UPSTREAM + path + upstreamQuery(url);
+  const target = UPSTREAM + path + query;
   let res: Response;
   try {
     res = await fetch(target, {
