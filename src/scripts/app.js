@@ -130,11 +130,33 @@ function keyFromHash() {
   return INSTRUMENTS[k] ? k : "cpu";
 }
 
+const API_METRIC = { cpu: "cpu", gpu: "gpu", ram: "ram", storage: "storage" };
+const TF_DAYS = { "1D": 1, "1W": 7, "1M": 30, "1Y": 365, "5Y": 1826 };
+const LIVE = { series: {}, capture: null, stale: false, health: "pending" };
+
+function liveSeries(key, tf) {
+  const all = LIVE.series[key];
+  if (!all || all.length < 2) return null;
+  const from = all[all.length - 1].t - TF_DAYS[tf] * 864e5;
+  let pts = all.filter(p => p.t >= from);
+  if (pts.length < 2) pts = all.slice(-2);
+  return pts.map(p => ({ t: p.t, price: p.price, vol: p.vol }));
+}
+
+const fmtDay = (t) => new Date(t).toLocaleDateString([], { day: "numeric", month: "short", year: "numeric", timeZone: "UTC" });
+function renderFoot() {
+  if (LIVE.health === "pending") return;
+  if (LIVE.health === "failed") { $("footDate").textContent = "data date unknown"; return; }
+  const s = LIVE.series[state.key];
+  const shown = s ? Math.min(LIVE.capture, s[s.length - 1].t) : LIVE.capture;
+  $("footDate").textContent = fmtDay(shown) + (LIVE.stale || shown < LIVE.capture - 864e5 ? " · data may be stale" : "");
+}
+
 function renderAll() {
   const key = state.key, it = INSTRUMENTS[key], ctx = CONTEXT[key] || {}, ref = isRef(it), base = headline(it);
   const meta = { symbol: it.tag, name: it.name, asset: it.sub, description: ctx.description || (ref ? `Reference index · ${it.sub}. Baseline = 100; current level reflects ${fmtDelta(it.delta)} vs baseline.` : `${it.group} · ${it.sub}.`) };
   const P = ref ? (v) => fmtPrice(v, "") : fmtPrice;
-  state.series = buildSeries(key, state.tf, base);
+  state.series = liveSeries(key, state.tf) || buildSeries(key, state.tf, base);
   state.offerings = ref ? [] : buildOfferings(key.replace(/[^a-z]/g, "").slice(0, 3) || key, base);
   document.title = `${it.name} · ${ref ? fmtDelta(it.delta) : fmtPrice(base)} — Earth Compute`;
 
@@ -157,7 +179,7 @@ function renderAll() {
     + `${up ? "+" : ""}${change.toFixed(3)} (${up ? "+" : ""}${changePct.toFixed(2)}%)`;
   $("hTf").textContent = ref ? `vs baseline · index ${P(last)} · ${TF_LABEL[state.tf]}` : TF_LABEL[state.tf];
 
-  $("menuHead").textContent = `Switch instrument · ${LIVE_COUNT} of ${LIVE_COUNT} live`;
+  $("menuHead").textContent = `Switch instrument · ${Object.keys(LIVE.series).length} of ${LIVE_COUNT} live`;
   $("menuList").innerHTML = GROUPS.map(g => `
     <li class="grp">
       <div class="grp-head"><span>${esc(g.name)}</span><a href="https://earth.ownx.co/" target="_blank" rel="noopener">view all →</a></div>
@@ -194,6 +216,7 @@ function renderAll() {
     <span><span class="k">Last</span> <span class="mono">${P(last)}</span></span>
     <span class="delta" style="background:${accentBg}"><span>Δ</span> <span class="mono ${up ? "hi" : "lo"}">${up ? "+" : ""}${changePct.toFixed(2)}%</span></span>`;
   $("desc").textContent = meta.description;
+  renderFoot();
 
   state.fmt = P;
   drawChart({ first, high, low, up });
@@ -238,7 +261,7 @@ function drawChart({ first, high, low, up }) {
   const xTicks = []; let lastX = -Infinity;
   const step = Math.max(1, Math.ceil(n / Math.floor(iw / 60)));
   for (let i = 0; i < n; i += step) { const px = P[i][0]; if (px - lastX >= 60) { xTicks.push([px, s[i].t]); lastX = px; } }
-  const xLabels = xTicks.map(([px, t]) => `<text x="${px.toFixed(1)}" y="${H - 8}" text-anchor="middle">${fmtTime(t, tf)}</text>`).join("");
+  const xLabels = xTicks.map(([px, t]) => `<text x="${px.toFixed(1)}" y="${H - 8}" text-anchor="middle">${LIVE.series[state.key] ? fmtDay(t).replace(/, \d{4}$/, "") : fmtTime(t, tf)}</text>`).join("");
 
   const yo = y(first).toFixed(1);
   svg.setAttribute("viewBox", `0 0 ${W} ${H}`);
@@ -281,7 +304,7 @@ function drawChart({ first, high, low, up }) {
     $("hvLine").setAttribute("x1", cx); $("hvLine").setAttribute("x2", cx);
     $("hvDot").setAttribute("cx", cx); $("hvDot").setAttribute("cy", cy);
     tip.hidden = false;
-    tip.innerHTML = `<div class="t">${new Date(d.t).toLocaleString()}</div><div class="p"><span class="mono">${(state.fmt||fmtPrice)(d.price)}</span> <span style="color:#6B6B72">${INSTRUMENTS[state.key].tag}</span></div>`;
+    tip.innerHTML = `<div class="t">${LIVE.series[state.key] ? fmtDay(d.t) : new Date(d.t).toLocaleString()}</div><div class="p"><span class="mono">${(state.fmt||fmtPrice)(d.price)}</span> <span style="color:#6B6B72">${INSTRUMENTS[state.key].tag}</span></div>`;
     const sx = cx * (r.width / chartGeom.W), sy = cy * (r.height / chartGeom.H);
     const tw = tip.offsetWidth;
     let left = sx; if (left - tw/2 < 4) left = tw/2 + 4; if (left + tw/2 > r.width - 4) left = r.width - tw/2 - 4;
@@ -351,12 +374,29 @@ state.key = keyFromHash();
 $("footDate").textContent = new Date().toLocaleDateString([], { day: "numeric", month: "short", year: "numeric" });
 renderAll();
 
-fetch("/api/v1/health", { headers: { Accept: "application/json" } })
-  .then(r => r.ok ? r.json() : Promise.reject(new Error("health " + r.status)))
+const getJSON = (url) => fetch(url, { headers: { Accept: "application/json" } })
+  .then(r => r.ok ? r.json() : Promise.reject(new Error(url + " " + r.status)));
+
+getJSON("/api/v1/health")
   .then(h => {
-    const d = new Date(h.latest_capture + "T00:00:00Z");
+    const d = Date.parse(h.latest_capture + "T00:00:00Z");
     if (isNaN(d)) throw new Error("health: bad latest_capture " + h.latest_capture);
-    const asOf = d.toLocaleDateString([], { day: "numeric", month: "short", year: "numeric", timeZone: "UTC" });
-    $("footDate").textContent = h.stale ? asOf + " · data may be stale" : asOf;
+    LIVE.capture = d; LIVE.stale = !!h.stale; LIVE.health = "ok";
   })
-  .catch(err => { console.warn("health check failed", err); $("footDate").textContent = "data date unknown"; });
+  .catch(err => { console.warn("health check failed", err); LIVE.health = "failed"; })
+  .then(renderFoot);
+
+Promise.all(Object.entries(API_METRIC).map(([key, metric]) =>
+  getJSON("/api/v1/instruments/" + metric)
+    .then(d => {
+      const pts = (d.series || [])
+        .map(p => ({ t: Date.parse((p.date || p.month) + "T00:00:00Z"), price: +p.usd, vol: p.observations || 0 }))
+        .filter(p => !isNaN(p.t) && isFinite(p.price) && p.price > 0)
+        .sort((a, b) => a.t - b.t);
+      if (pts.length < 2 || !isFinite(+d.current_usd)) throw new Error(metric + ": unusable series");
+      LIVE.series[key] = pts;
+      INSTRUMENTS[key].price = pts[pts.length - 1].price;
+      GROUPS.forEach(g => g.items.forEach(m => { if (m.key === key) m.price = INSTRUMENTS[key].price; }));
+    })
+    .catch(err => console.warn("instrument unavailable, keeping design value", key, err))
+)).then(renderAll);
