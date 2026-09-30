@@ -1,3 +1,4 @@
+import SNAP from "../data/ec-snapshot.json";
 const GROUPS = [
   { name: "Cloud Compute", items: [
     { key: "cpu",       tag: "VCPU", name: "CPU",     sub: "Compute · per vCPU · month",  price: 42.05 },
@@ -132,7 +133,22 @@ function keyFromHash() {
 
 const API_METRIC = { cpu: "cpu", gpu: "gpu", ram: "ram", storage: "storage" };
 const TF_DAYS = { "1D": 1, "1W": 7, "1M": 30, "1Y": 365, "5Y": 1826 };
-const LIVE = { series: {}, capture: null, stale: false, health: "pending" };
+const LIVE = { series: {}, capture: null, stale: false, health: "pending", flat: {} };
+const toPts = (arr) => arr.map(([d, v]) => ({ t: Date.parse(d + "T00:00:00Z"), price: +v, vol: 0 })).filter(p => !isNaN(p.t) && isFinite(p.price));
+function setLive(key, pts) {
+  if (pts.length === 1) { LIVE.flat[key] = true; pts = [{ ...pts[0], t: pts[0].t - 864e5 }, pts[0]]; } else delete LIVE.flat[key];
+  LIVE.series[key] = pts;
+  const it = INSTRUMENTS[key], last = pts[pts.length - 1].price;
+  GROUPS.forEach(g => g.items.forEach(m => { if (m.key === key && !isRef(m)) m.price = last; }));
+  if (!isRef(it)) it.price = last;
+}
+Object.entries(SNAP.series).forEach(([key, arr]) => INSTRUMENTS[key] && setLive(key, toPts(arr)));
+Object.entries(SNAP.ref).forEach(([key, r]) => {
+  if (!INSTRUMENTS[key]) return;
+  INSTRUMENTS[key].delta = r.delta;
+  GROUPS.forEach(g => g.items.forEach(m => { if (m.key === key) m.delta = r.delta; }));
+  setLive(key, toPts(r.series));
+});
 
 function liveSeries(key, tf) {
   const all = LIVE.series[key];
@@ -149,7 +165,7 @@ function renderFoot() {
   if (LIVE.health === "failed") { $("footDate").textContent = "data date unknown"; return; }
   const s = LIVE.series[state.key];
   const shown = s ? Math.min(LIVE.capture, s[s.length - 1].t) : LIVE.capture;
-  $("footDate").textContent = fmtDay(shown) + (LIVE.stale || shown < LIVE.capture - 864e5 ? " · data may be stale" : "");
+  $("footDate").textContent = fmtDay(shown) + (LIVE.stale ? " · data may be stale" : "");
 }
 
 function renderAll() {
@@ -163,7 +179,7 @@ function renderAll() {
   const s = state.series;
   const first = s[0].price, last = s[s.length - 1].price;
   const change = last - first, changePct = (change / first) * 100, up = change >= 0;
-  const coverage = !!LIVE.series[key] && s[0].vol > 0 && Math.abs(s[s.length - 1].vol / s[0].vol - 1) > 0.1;
+  const coverage = !!LIVE.flat[key] || (!!LIVE.series[key] && s[0].vol > 0 && Math.abs(s[s.length - 1].vol / s[0].vol - 1) > 0.1);
   const high = Math.max(...s.map(p => p.price)), low = Math.min(...s.map(p => p.price));
 
   $("hSym").textContent = meta.symbol;
@@ -396,10 +412,10 @@ Promise.all(Object.entries(API_METRIC).map(([key, metric]) =>
         .map(p => ({ t: Date.parse((p.date || p.month) + "T00:00:00Z"), price: +p.usd, vol: p.observations || 0 }))
         .filter(p => !isNaN(p.t) && isFinite(p.price) && p.price > 0)
         .sort((a, b) => a.t - b.t);
-      if (pts.length < 2 || !isFinite(+d.current_usd)) throw new Error(metric + ": unusable series");
-      LIVE.series[key] = pts;
-      INSTRUMENTS[key].price = pts[pts.length - 1].price;
-      GROUPS.forEach(g => g.items.forEach(m => { if (m.key === key) m.price = INSTRUMENTS[key].price; }));
+      if (pts.length < 2) throw new Error(metric + ": unusable series");
+      const cur = LIVE.series[key];
+      if (cur && cur[cur.length - 1].t > pts[pts.length - 1].t) return;
+      setLive(key, pts);
     })
-    .catch(err => console.warn("instrument unavailable, keeping design value", key, err))
+    .catch(err => console.warn("api series unavailable, keeping snapshot", key, err))
 )).then(renderAll);
