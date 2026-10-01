@@ -131,9 +131,12 @@ function keyFromHash() {
   return INSTRUMENTS[k] ? k : "cpu";
 }
 
-const API_METRIC = { cpu: "cpu", gpu: "gpu", "cloud-ram": "cloudram", bw: "egress", pwr: "power", storage: "storage_marginal", ssd: "hwssd", ram: "dram" };
-const API_UNIT = { cpu: "per vCPU · month", gpu: "per GPU · hour", "cloud-ram": "per GB · month", bw: "per TB egress", pwr: "per kWh blended", storage: "per TB · month", ssd: "per GB", ram: "per GB" };
-const API_REF = { "ref-cpu": "m_hwcpu", "ref-gpu": "m_hwgpu", "ref-perf": "m_hwgpu", "ref-hdd": "m_hwhdd", "ref-networking": "m_hwnet", "ref-agents": "m_aiagents", "ref-task": "m_petask", "ref-benchmark": "m_pebench", "ref-watt": "m_pewatt", "ref-cooling": "m_dccool", "ref-colo": "m_dccolo", "ref-network": "m_dctransit", "ref-space": "m_dcspace" };
+const API_KEY = {
+  cpu: "cpu", gpu: "gpu", "cloud-ram": "cloudram", bw: "egress", pwr: "power", storage: "storage_marginal", ssd: "hwssd", ram: "dram", inf: "llm", "inf-token": "llm",
+  "ref-cpu": "m_hwcpu", "ref-gpu": "m_hwgpu", "ref-perf": "m_hwgpu", "ref-hdd": "m_hwhdd", "ref-networking": "m_hwnet", "ref-agents": "m_aiagents", "ref-task": "m_petask",
+  "ref-benchmark": "m_pebench", "ref-watt": "m_pewatt", "ref-cooling": "m_dccool", "ref-colo": "m_dccolo", "ref-network": "m_dctransit", "ref-space": "m_dcspace", "ref-image": "m_aiimage",
+};
+const API_UNIT = { cpu: "per vCPU · month", gpu: "per GPU · hour", "cloud-ram": "per GB · month", bw: "per TB egress", pwr: "per kWh blended", storage: "per TB · month", ssd: "per GB", ram: "per GB", inf: "per M input tokens", "inf-token": "per M input tokens" };
 const MIN_OBS = 50;
 const TF_DAYS = { "1D": 1, "1W": 7, "1M": 30, "1Y": 365, "5Y": 1825 };
 const LIVE = { series: {}, capture: null, stale: false, health: "pending", flat: {}, refApi: {} };
@@ -410,47 +413,47 @@ getJSON("/api/v1/health")
   .catch(err => { console.warn("health check failed", err); LIVE.health = "failed"; })
   .then(renderFoot);
 
-const apiPrices = Promise.all(Object.entries(API_METRIC).map(([key, metric]) =>
-  getJSON("/api/v1/instruments/" + metric)
-    .then(d => {
-      const pts = (d.series || [])
-        .map(p => ({ t: Date.parse((p.date || p.month) + "T00:00:00Z"), price: +p.usd, vol: p.observations == null ? 0 : +p.observations, n: p.observations }))
-        .filter(p => !isNaN(p.t) && isFinite(p.price) && p.price > 0 && (p.n == null || p.vol >= MIN_OBS))
-        .sort((a, b) => a.t - b.t);
-      if (pts.length < 1) throw new Error(metric + ": empty series");
-      if (d.unit !== API_UNIT[key]) throw new Error(metric + ": unit " + d.unit + " is not " + API_UNIT[key]);
-      const cur = LIVE.series[key];
-      if (cur && cur[cur.length - 1].t > pts[pts.length - 1].t) return;
-      setLive(key, pts);
-    })
-    .catch(err => console.warn("api series unavailable, keeping snapshot", key, err))
-));
-
 function setRefDelta(key, mv) {
   INSTRUMENTS[key].delta = mv;
   GROUPS.forEach(g => g.items.forEach(m => { if (m.key === key) m.delta = mv; }));
 }
-const apiRefs = getJSON("/api/v1/instruments")
-  .then(list => {
-    const byMetric = Object.fromEntries((list.instruments || []).map(i => [i.metric, i]));
-    const series = {};
-    return Promise.all(Object.entries(API_REF).map(([key, metric]) => {
-      const row = byMetric[metric];
-      if (!row || row.median_move_pct == null || !isFinite(+row.median_move_pct) || !INSTRUMENTS[key]) return null;
-      const mv = +row.median_move_pct;
-      setRefDelta(key, mv);
-      series[metric] = series[metric] || getJSON("/api/v1/instruments/" + metric);
-      return series[metric].then(d => {
-        const pts = (d.series || []).map(p => ({ t: Date.parse((p.date || p.month) + "T00:00:00Z"), v: +p.usd }))
-          .filter(p => !isNaN(p.t) && isFinite(p.v) && p.v > 0).sort((a, b) => a.t - b.t);
-        if (pts.length < 2) return;
-        const move = (pts[pts.length - 1].v / pts[0].v - 1) * 100;
-        if (Math.abs(move - mv) > 0.1) return;
-        setLive(key, pts.map(p => ({ t: p.t, price: (p.v / pts[0].v) * 100, vol: 0 })));
-        LIVE.refApi[key] = true;
-      });
-    }));
-  })
-  .catch(err => console.warn("api reference rows unavailable, keeping snapshot", err));
+const toPtsApi = (series) => (series || [])
+  .map(p => ({ t: Date.parse((p.date || p.month) + "T00:00:00Z"), price: +p.usd, n: p.observations }))
+  .filter(p => !isNaN(p.t) && isFinite(p.price) && p.price > 0)
+  .sort((a, b) => a.t - b.t);
 
-Promise.all([apiPrices, apiRefs]).then(renderAll);
+function applyPrice(key, row) {
+  if (row.unit !== API_UNIT[key]) throw new Error("unit " + row.unit + " is not " + API_UNIT[key]);
+  const pts = toPtsApi(row.series).filter(p => p.n == null || +p.n >= MIN_OBS).map(p => ({ t: p.t, price: p.price, vol: p.n == null ? 0 : +p.n }));
+  if (!pts.length) throw new Error("empty series");
+  const cur = LIVE.series[key];
+  if (cur && cur[cur.length - 1].t > pts[pts.length - 1].t) return;
+  setLive(key, pts);
+}
+function applyIndex(key, row) {
+  const mv = +row.median_move_pct;
+  if (row.median_move_pct == null || !isFinite(mv)) throw new Error("no median_move_pct");
+  setRefDelta(key, mv);
+  const pts = toPtsApi(row.series);
+  if (pts.length < 2) return;
+  const move = (pts[pts.length - 1].price / pts[0].price - 1) * 100;
+  if (Math.abs(move - mv) > 0.1) return;
+  setLive(key, pts.map(p => ({ t: p.t, price: (p.price / pts[0].price) * 100, vol: 0 })));
+  LIVE.refApi[key] = true;
+}
+
+getJSON("/api/v1/site/instruments")
+  .then(d => {
+    const byKey = Object.fromEntries((d.instruments || []).map(i => [i.key, i]));
+    Object.entries(API_KEY).forEach(([key, metric]) => {
+      const row = byKey[metric];
+      if (!row || !INSTRUMENTS[key]) return;
+      try {
+        if (row.kind === "index") applyIndex(key, row);
+        else if (row.kind === "price") applyPrice(key, row);
+        else throw new Error("unknown kind " + row.kind);
+      } catch (err) { console.warn("api row unusable, keeping snapshot", key, metric, err); }
+    });
+  })
+  .catch(err => console.warn("api unavailable, keeping snapshot", err))
+  .then(renderAll);

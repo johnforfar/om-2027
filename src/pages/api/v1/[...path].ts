@@ -5,7 +5,7 @@ export const prerender = false;
 
 const UPSTREAM = 'https://api.deploy.openmesh.cloud/api/v1/';
 const OPEN = new Set(['health']);
-const ROUTES = [/^health$/, /^instruments$/, /^instruments\/[a-z0-9_-]{1,40}$/, /^offers$/];
+const ROUTES = [/^health$/, /^instruments$/, /^instruments\/[a-z0-9_-]{1,40}$/, /^site\/instruments$/, /^offers$/];
 const PARAMS = new Set(['basis', 'metric', 'tier', 'provider', 'gpu', 'cat', 'sort', 'limit', 'cursor']);
 const MAX_LIMIT = 100;
 const TIMEOUT_MS = 10000;
