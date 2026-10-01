@@ -131,7 +131,7 @@ function keyFromHash() {
   return INSTRUMENTS[k] ? k : "cpu";
 }
 
-const API_METRIC = {};
+const API_METRIC = { cpu: "cpu", gpu: "gpu" };
 const TF_DAYS = { "1D": 1, "1W": 7, "1M": 30, "1Y": 365, "5Y": 1825 };
 const LIVE = { series: {}, capture: null, stale: false, health: "pending", flat: {} };
 const toPts = (arr) => arr.map(([d, v]) => ({ t: Date.parse(d + "T00:00:00Z"), price: +v, vol: 0 })).filter(p => !isNaN(p.t) && isFinite(p.price));
