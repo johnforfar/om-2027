@@ -131,8 +131,8 @@ function keyFromHash() {
   return INSTRUMENTS[k] ? k : "cpu";
 }
 
-const API_METRIC = { cpu: "cpu", gpu: "gpu", "cloud-ram": "cloudram", bw: "egress", pwr: "power" };
-const API_UNIT = { cpu: "per vCPU · month", gpu: "per GPU · hour", "cloud-ram": "per GB · month", bw: "per TB egress", pwr: "per kWh blended" };
+const API_METRIC = { cpu: "cpu", gpu: "gpu", "cloud-ram": "cloudram", bw: "egress", pwr: "power", storage: "storage_marginal", ssd: "hwssd" };
+const API_UNIT = { cpu: "per vCPU · month", gpu: "per GPU · hour", "cloud-ram": "per GB · month", bw: "per TB egress", pwr: "per kWh blended", storage: "per TB · month", ssd: "per GB" };
 const MIN_OBS = 50;
 const TF_DAYS = { "1D": 1, "1W": 7, "1M": 30, "1Y": 365, "5Y": 1825 };
 const LIVE = { series: {}, capture: null, stale: false, health: "pending", flat: {} };
