@@ -132,6 +132,7 @@ function keyFromHash() {
 }
 
 const API_METRIC = { cpu: "cpu", gpu: "gpu" };
+const API_UNIT = { cpu: "per vCPU · month", gpu: "per GPU · hour" };
 const MIN_OBS = 50;
 const TF_DAYS = { "1D": 1, "1W": 7, "1M": 30, "1Y": 365, "5Y": 1825 };
 const LIVE = { series: {}, capture: null, stale: false, health: "pending", flat: {} };
@@ -416,6 +417,7 @@ Promise.all(Object.entries(API_METRIC).map(([key, metric]) =>
         .filter(p => !isNaN(p.t) && isFinite(p.price) && p.price > 0 && p.vol >= MIN_OBS)
         .sort((a, b) => a.t - b.t);
       if (pts.length < 2) throw new Error(metric + ": unusable series");
+      if (d.unit !== API_UNIT[key]) throw new Error(metric + ": unit " + d.unit + " is not " + API_UNIT[key]);
       const cur = LIVE.series[key];
       if (cur && cur[cur.length - 1].t > pts[pts.length - 1].t) return;
       setLive(key, pts);
