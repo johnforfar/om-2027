@@ -131,11 +131,12 @@ function keyFromHash() {
   return INSTRUMENTS[k] ? k : "cpu";
 }
 
-const API_METRIC = { cpu: "cpu", gpu: "gpu", "cloud-ram": "cloudram", bw: "egress", pwr: "power", storage: "storage_marginal", ssd: "hwssd" };
-const API_UNIT = { cpu: "per vCPU · month", gpu: "per GPU · hour", "cloud-ram": "per GB · month", bw: "per TB egress", pwr: "per kWh blended", storage: "per TB · month", ssd: "per GB" };
+const API_METRIC = { cpu: "cpu", gpu: "gpu", "cloud-ram": "cloudram", bw: "egress", pwr: "power", storage: "storage_marginal", ssd: "hwssd", ram: "dram" };
+const API_UNIT = { cpu: "per vCPU · month", gpu: "per GPU · hour", "cloud-ram": "per GB · month", bw: "per TB egress", pwr: "per kWh blended", storage: "per TB · month", ssd: "per GB", ram: "per GB" };
+const API_REF = { "ref-cpu": "m_hwcpu", "ref-gpu": "m_hwgpu", "ref-perf": "m_hwgpu", "ref-hdd": "m_hwhdd", "ref-networking": "m_hwnet", "ref-agents": "m_aiagents", "ref-task": "m_petask", "ref-benchmark": "m_pebench", "ref-watt": "m_pewatt", "ref-cooling": "m_dccool", "ref-colo": "m_dccolo", "ref-network": "m_dctransit", "ref-space": "m_dcspace" };
 const MIN_OBS = 50;
 const TF_DAYS = { "1D": 1, "1W": 7, "1M": 30, "1Y": 365, "5Y": 1825 };
-const LIVE = { series: {}, capture: null, stale: false, health: "pending", flat: {} };
+const LIVE = { series: {}, capture: null, stale: false, health: "pending", flat: {}, refApi: {} };
 const toPts = (arr) => arr.map(([d, v]) => ({ t: Date.parse(d + "T00:00:00Z"), price: +v, vol: 0 })).filter(p => !isNaN(p.t) && isFinite(p.price));
 function setLive(key, pts) {
   if (pts.length === 1) { LIVE.flat[key] = true; pts = [{ ...pts[0], t: pts[0].t - 864e5 }, pts[0]]; } else delete LIVE.flat[key];
@@ -174,7 +175,7 @@ function renderFoot() {
 function renderAll() {
   const key = state.key, it = INSTRUMENTS[key], ctx = CONTEXT[key] || {}, ref = isRef(it), base = headline(it);
   const rb = SNAP.ref[key];
-  const meta = { symbol: it.tag, name: it.name, asset: it.sub, description: ctx.description || (ref ? (rb && rb.brand ? `Reference index · ${it.sub}. Median brand: ${rb.brand}, rebased to 100 at ${rb.since.slice(0, 7)}; ${fmtDelta(it.delta)} since.` : `Reference index · ${it.sub}. Baseline = 100; current level reflects ${fmtDelta(it.delta)} vs baseline.`) : `${it.group} · ${it.sub}.`) };
+  const meta = { symbol: it.tag, name: it.name, asset: it.sub, description: ctx.description || (ref ? (rb && rb.brand && !LIVE.refApi[key] ? `Reference index · ${it.sub}. Median brand: ${rb.brand}, rebased to 100 at ${rb.since.slice(0, 7)}; ${fmtDelta(it.delta)} since.` : `Reference index · ${it.sub}. Baseline = 100; current level reflects ${fmtDelta(it.delta)} vs baseline.`) : `${it.group} · ${it.sub}.`) };
   const P = ref ? (v) => fmtPrice(v, "") : fmtPrice;
   state.series = liveSeries(key, state.tf) || buildSeries(key, state.tf, base);
   state.offerings = ref ? [] : buildOfferings(key.replace(/[^a-z]/g, "").slice(0, 3) || key, base);
@@ -409,7 +410,7 @@ getJSON("/api/v1/health")
   .catch(err => { console.warn("health check failed", err); LIVE.health = "failed"; })
   .then(renderFoot);
 
-Promise.all(Object.entries(API_METRIC).map(([key, metric]) =>
+const apiPrices = Promise.all(Object.entries(API_METRIC).map(([key, metric]) =>
   getJSON("/api/v1/instruments/" + metric)
     .then(d => {
       const pts = (d.series || [])
@@ -423,4 +424,33 @@ Promise.all(Object.entries(API_METRIC).map(([key, metric]) =>
       setLive(key, pts);
     })
     .catch(err => console.warn("api series unavailable, keeping snapshot", key, err))
-)).then(renderAll);
+));
+
+function setRefDelta(key, mv) {
+  INSTRUMENTS[key].delta = mv;
+  GROUPS.forEach(g => g.items.forEach(m => { if (m.key === key) m.delta = mv; }));
+}
+const apiRefs = getJSON("/api/v1/instruments")
+  .then(list => {
+    const byMetric = Object.fromEntries((list.instruments || []).map(i => [i.metric, i]));
+    const series = {};
+    return Promise.all(Object.entries(API_REF).map(([key, metric]) => {
+      const row = byMetric[metric];
+      if (!row || row.median_move_pct == null || !isFinite(+row.median_move_pct) || !INSTRUMENTS[key]) return null;
+      const mv = +row.median_move_pct;
+      setRefDelta(key, mv);
+      series[metric] = series[metric] || getJSON("/api/v1/instruments/" + metric);
+      return series[metric].then(d => {
+        const pts = (d.series || []).map(p => ({ t: Date.parse((p.date || p.month) + "T00:00:00Z"), v: +p.usd }))
+          .filter(p => !isNaN(p.t) && isFinite(p.v) && p.v > 0).sort((a, b) => a.t - b.t);
+        if (pts.length < 2) return;
+        const move = (pts[pts.length - 1].v / pts[0].v - 1) * 100;
+        if (Math.abs(move - mv) > 0.1) return;
+        setLive(key, pts.map(p => ({ t: p.t, price: (p.v / pts[0].v) * 100, vol: 0 })));
+        LIVE.refApi[key] = true;
+      });
+    }));
+  })
+  .catch(err => console.warn("api reference rows unavailable, keeping snapshot", err));
+
+Promise.all([apiPrices, apiRefs]).then(renderAll);
