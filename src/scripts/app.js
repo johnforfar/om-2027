@@ -131,7 +131,7 @@ function keyFromHash() {
   return INSTRUMENTS[k] ? k : "cpu";
 }
 
-const API_METRIC = { cpu: "cpu", gpu: "gpu" };
+const API_METRIC = {};
 const TF_DAYS = { "1D": 1, "1W": 7, "1M": 30, "1Y": 365, "5Y": 1825 };
 const LIVE = { series: {}, capture: null, stale: false, health: "pending", flat: {} };
 const toPts = (arr) => arr.map(([d, v]) => ({ t: Date.parse(d + "T00:00:00Z"), price: +v, vol: 0 })).filter(p => !isNaN(p.t) && isFinite(p.price));
@@ -171,7 +171,8 @@ function renderFoot() {
 
 function renderAll() {
   const key = state.key, it = INSTRUMENTS[key], ctx = CONTEXT[key] || {}, ref = isRef(it), base = headline(it);
-  const meta = { symbol: it.tag, name: it.name, asset: it.sub, description: ctx.description || (ref ? `Reference index · ${it.sub}. Baseline = 100; current level reflects ${fmtDelta(it.delta)} vs baseline.` : `${it.group} · ${it.sub}.`) };
+  const rb = SNAP.ref[key];
+  const meta = { symbol: it.tag, name: it.name, asset: it.sub, description: ctx.description || (ref ? (rb && rb.brand ? `Reference index · ${it.sub}. Median brand: ${rb.brand}, rebased to 100 at ${rb.since.slice(0, 7)}; ${fmtDelta(it.delta)} since.` : `Reference index · ${it.sub}. Baseline = 100; current level reflects ${fmtDelta(it.delta)} vs baseline.`) : `${it.group} · ${it.sub}.`) };
   const P = ref ? (v) => fmtPrice(v, "") : fmtPrice;
   state.series = liveSeries(key, state.tf) || buildSeries(key, state.tf, base);
   state.offerings = ref ? [] : buildOfferings(key.replace(/[^a-z]/g, "").slice(0, 3) || key, base);
