@@ -132,6 +132,7 @@ function keyFromHash() {
 }
 
 const API_METRIC = { cpu: "cpu", gpu: "gpu" };
+const MIN_OBS = 50;
 const TF_DAYS = { "1D": 1, "1W": 7, "1M": 30, "1Y": 365, "5Y": 1825 };
 const LIVE = { series: {}, capture: null, stale: false, health: "pending", flat: {} };
 const toPts = (arr) => arr.map(([d, v]) => ({ t: Date.parse(d + "T00:00:00Z"), price: +v, vol: 0 })).filter(p => !isNaN(p.t) && isFinite(p.price));
@@ -412,7 +413,7 @@ Promise.all(Object.entries(API_METRIC).map(([key, metric]) =>
     .then(d => {
       const pts = (d.series || [])
         .map(p => ({ t: Date.parse((p.date || p.month) + "T00:00:00Z"), price: +p.usd, vol: p.observations || 0 }))
-        .filter(p => !isNaN(p.t) && isFinite(p.price) && p.price > 0)
+        .filter(p => !isNaN(p.t) && isFinite(p.price) && p.price > 0 && p.vol >= MIN_OBS)
         .sort((a, b) => a.t - b.t);
       if (pts.length < 2) throw new Error(metric + ": unusable series");
       const cur = LIVE.series[key];
