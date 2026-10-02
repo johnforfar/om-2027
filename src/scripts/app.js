@@ -138,6 +138,11 @@ const API_KEY = {
 };
 const API_UNIT = { cpu: "per vCPU · month", gpu: "per GPU · hour", "cloud-ram": "per GB · month", bw: "per TB egress", pwr: "per kWh blended", storage: "per TB · month", ssd: "per GB", ram: "per GB", inf: "per M input tokens", "inf-token": "per M input tokens" };
 const MIN_OBS = 50;
+const PLAUSIBLE = {
+  cpu: [1, 500], gpu: [0.05, 50], "cloud-ram": [0.1, 50], storage: [1, 1000], ssd: [0.005, 50], ram: [0.3, 1000],
+  bw: [0.5, 200], pwr: [0.02, 1], inf: [0.01, 100], "inf-token": [0.01, 100],
+};
+const MOVE_RANGE = [-99.99, 10000];
 const TF_DAYS = { "1D": 1, "1W": 7, "1M": 30, "1Y": 365, "5Y": 1825 };
 const LIVE = { series: {}, capture: null, stale: false, health: "pending", flat: {}, refApi: {} };
 const toPts = (arr) => arr.map(([d, v]) => ({ t: Date.parse(d + "T00:00:00Z"), price: +v, vol: 0 })).filter(p => !isNaN(p.t) && isFinite(p.price));
@@ -426,15 +431,22 @@ const toPtsApi = (series) => (series || [])
 
 function applyPrice(key, row) {
   if (row.unit !== API_UNIT[key]) throw new Error("unit " + row.unit + " is not " + API_UNIT[key]);
-  const pts = toPtsApi(row.series).filter(p => p.n == null || +p.n >= MIN_OBS).map(p => ({ t: p.t, price: p.price, vol: p.n == null ? 0 : +p.n }));
+  const [lo, hi] = PLAUSIBLE[key];
+  const cur = +row.current_usd;
+  if (!(cur >= lo && cur <= hi)) throw new Error("implausible headline " + row.current_usd + " outside " + lo + "–" + hi);
+  const all = toPtsApi(row.series).filter(p => p.n == null || +p.n >= MIN_OBS);
+  const pts = all.filter(p => p.price >= lo && p.price <= hi).map(p => ({ t: p.t, price: p.price, vol: p.n == null ? 0 : +p.n }));
+  if (pts.length < all.length) console.warn("dropped implausible points", key, all.length - pts.length);
   if (!pts.length) throw new Error("empty series");
-  const cur = LIVE.series[key];
-  if (cur && cur[cur.length - 1].t > pts[pts.length - 1].t) return;
+  if (Math.abs(pts[pts.length - 1].price / cur - 1) > 0.02) throw new Error("series ends at " + pts[pts.length - 1].price + ", headline is " + cur);
+  const prev = LIVE.series[key];
+  if (prev && prev[prev.length - 1].t > pts[pts.length - 1].t) return;
   setLive(key, pts);
 }
 function applyIndex(key, row) {
   const mv = +row.median_move_pct;
   if (row.median_move_pct == null || !isFinite(mv)) throw new Error("no median_move_pct");
+  if (mv < MOVE_RANGE[0] || mv > MOVE_RANGE[1]) throw new Error("implausible median_move_pct " + mv);
   setRefDelta(key, mv);
   const pts = toPtsApi(row.series);
   if (pts.length < 2) return;
