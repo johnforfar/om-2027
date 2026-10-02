@@ -134,7 +134,7 @@ function keyFromHash() {
 const API_KEY = {
   cpu: "cpu", gpu: "gpu", "cloud-ram": "cloudram", bw: "egress", pwr: "power", storage: "storage_marginal", ssd: "hwssd", ram: "dram", inf: "llm", "inf-token": "llm",
   "ref-cpu": "m_hwcpu", "ref-gpu": "m_hwgpu", "ref-perf": "m_hwgpu", "ref-hdd": "m_hwhdd", "ref-networking": "m_hwnet", "ref-agents": "m_aiagents", "ref-task": "m_petask",
-  "ref-benchmark": "m_pebench", "ref-watt": "m_pewatt", "ref-cooling": "m_dccool", "ref-colo": "m_dccolo", "ref-network": "m_dctransit", "ref-space": "m_dcspace", "ref-image": "m_aiimage", "ref-video": "m_aivideo", "ref-embeddings": "m_aiembed",
+  "ref-benchmark": "m_pebench", "ref-watt": "m_pewatt", "ref-cooling": "m_dccool", "ref-colo": "m_dccolo", "ref-network": "m_dctransit", "ref-space": "m_dcspace", "ref-image": "m_aiimage", "ref-video": "m_aivideo", "ref-embeddings": "m_aiembed", "ref-audio": "m_aiaudio",
 };
 const API_UNIT = { cpu: "per vCPU · month", gpu: "per GPU · hour", "cloud-ram": "per GB · month", bw: "per TB egress", pwr: "per kWh blended", storage: "per TB · month", ssd: "per GB", ram: "per GB", inf: "per M input tokens", "inf-token": "per M input tokens" };
 const MIN_OBS = 50;
