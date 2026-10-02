@@ -254,6 +254,8 @@ function renderAll() {
 
 const chartGeom = { pts: [] };
 function drawChart({ first, high, low, up }) {
+  const flat = high === low;
+  if (flat) { const pad = Math.abs(high) * 0.05 || 1; high += pad; low -= pad; }
   const svg = $("chart"), wrap = $("chartWrap");
   const W = Math.max(320, wrap.clientWidth), H = Math.max(200, wrap.clientHeight);
   const m = { top: 10, right: 56, bottom: 30, left: 8 };
@@ -288,13 +290,13 @@ function drawChart({ first, high, low, up }) {
   const xTicks = []; let lastX = -Infinity;
   const step = Math.max(1, Math.ceil(n / Math.floor(iw / 60)));
   for (let i = 0; i < n; i += step) { const px = P[i][0]; if (px - lastX >= 60) { xTicks.push([px, s[i].t]); lastX = px; } }
-  const xLabels = xTicks.map(([px, t]) => `<text x="${px.toFixed(1)}" y="${H - 8}" text-anchor="middle">${LIVE.series[state.key] ? fmtDay(t).replace(/, \d{4}$/, "") : fmtTime(t, tf)}</text>`).join("");
+  const xLabels = xTicks.map(([px, t]) => `<text x="${px.toFixed(1)}" y="${H - 8}" text-anchor="middle">${LIVE.series[state.key] ? (t1 - t0 > 300 * 864e5 ? new Date(t).toLocaleDateString([], { month: "short", year: "numeric", timeZone: "UTC" }) : fmtDay(t).replace(/, \d{4}$/, "")) : fmtTime(t, tf)}</text>`).join("");
 
   const yo = y(first).toFixed(1);
   svg.setAttribute("viewBox", `0 0 ${W} ${H}`);
   svg.innerHTML = `
     <defs>
-      <linearGradient id="line" x1="0" y1="0" x2="1" y2="0">
+      <linearGradient id="line" ${flat ? `gradientUnits="userSpaceOnUse" x1="${m.left}" y1="0" x2="${m.left + iw}" y2="0"` : `x1="0" y1="0" x2="1" y2="0"`}>
         ${up ? '<stop offset="0%" stop-color="#34D399"/><stop offset="50%" stop-color="#22D3EE"/><stop offset="100%" stop-color="#8B5CF6"/>'
              : '<stop offset="0%" stop-color="#FB7185"/><stop offset="50%" stop-color="#F472B6"/><stop offset="100%" stop-color="#8B5CF6"/>'}
       </linearGradient>
