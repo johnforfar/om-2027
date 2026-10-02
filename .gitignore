@@ -10,3 +10,4 @@ shots/
 /*.html
 .env
 .env.*
+/perf-baseline/
