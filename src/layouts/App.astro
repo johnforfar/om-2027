@@ -1,6 +1,9 @@
 ---
 import '../styles/fonts.css';
 import '../styles/app.css';
+import snap from '../data/ec-snapshot.json';
+import appSrc from '../scripts/app.js?raw';
+const appJs = 'const SNAP = ' + JSON.stringify(snap) + ';\n' + appSrc.replace(/^import SNAP from [^\n]*\n/, '');
 ---
 <!DOCTYPE html>
 <html lang="en">
@@ -16,8 +19,6 @@ import '../styles/app.css';
 
 <slot />
 
-<script>
-  import '../scripts/app.js';
-</script>
+<script is:inline set:html={appJs}></script>
 </body>
 </html>
